@@ -28,6 +28,10 @@ The application will support multiple languages:
 ### wod (Word of the Day)
 A Django app that presents users with a daily word to learn in their target language, helping build vocabulary through consistent daily practice.
 
+**Models:**
+- `Language` - Stores supported languages with code (e.g., 'en', 'hu', 'de'), name, and native language flag
+- `Word` - Stores vocabulary words with language reference, translation, definition, and timestamps
+
 ## Development Commands
 
 ### Poetry
