@@ -46,6 +46,13 @@ A Django app that presents users with a daily word to learn in their target lang
 - `poetry run flake8 .` - Lint code
 - `poetry run isort .` - Sort imports
 
+### Testing
+- `poetry run pytest` - Run all tests with coverage report
+- `poetry run pytest wod/` - Run tests for specific app
+- `poetry run pytest -v` - Run tests with verbose output
+- `poetry run pytest --lf` - Run only last failed tests
+- `poetry run pytest --cov-report=html` - Generate HTML coverage report (see htmlcov/index.html)
+
 ## Status
 
 Currently in initial development phase. Docker containerization and detailed setup instructions will be added in upcoming changes.
