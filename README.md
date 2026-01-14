@@ -28,6 +28,20 @@ The application will support multiple languages:
 ### wod (Word of the Day)
 A Django app that presents users with a daily word to learn in their target language, helping build vocabulary through consistent daily practice.
 
+## Development Commands
+
+### Poetry
+- `poetry install` - Install dependencies
+- `poetry add <package>` - Add new package
+- `poetry add --group dev <package>` - Add dev dependency
+- `poetry run python manage.py <command>` - Run Django commands
+- `poetry shell` - Activate virtual environment
+
+### Linting & Formatting
+- `poetry run black .` - Format code
+- `poetry run flake8 .` - Lint code
+- `poetry run isort .` - Sort imports
+
 ## Status
 
 Currently in initial development phase. Docker containerization and detailed setup instructions will be added in upcoming changes.

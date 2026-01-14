@@ -1,0 +1,24 @@
+[project]
+name = "django-language"
+version = "0.1.0"
+description = "A Django application for language learning"
+authors = [
+    {name = "Matthew",email = "matthew@example.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = "^3.14"
+dependencies = [
+    "django (==5.2.8)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.12.0"
+flake8 = "^7.3.0"
+isort = "^7.0.0"
+
