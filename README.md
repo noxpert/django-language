@@ -23,6 +23,11 @@ The application will support multiple languages:
 - Hungarian
 - German
 
+## Apps
+
+### wod (Word of the Day)
+A Django app that presents users with a daily word to learn in their target language, helping build vocabulary through consistent daily practice.
+
 ## Status
 
 Currently in initial development phase. Docker containerization and detailed setup instructions will be added in upcoming changes.
