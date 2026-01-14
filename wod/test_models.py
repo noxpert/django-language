@@ -1,4 +1,5 @@
 import pytest
+
 from wod.models import Language, Word
 
 
