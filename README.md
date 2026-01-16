@@ -71,11 +71,11 @@ The most common workflow is:
 - `docker compose logs` - View logs from all services
 - `docker compose logs -f` - Follow logs in real-time
 - `docker compose logs web` - View logs for specific service
-- `docker compose exec web poetry run python manage.py <command>` - Run Django management commands
-- `docker compose exec web poetry run python manage.py migrate` - Apply database migrations
-- `docker compose exec web poetry run python manage.py createsuperuser` - Create admin user
-- `docker compose exec web poetry run python manage.py shell` - Open Django shell
-- `docker compose exec web poetry run pytest` - Run tests inside container
+- `docker compose exec web python manage.py <command>` - Run Django management commands
+- `docker compose exec web python manage.py migrate` - Apply database migrations
+- `docker compose exec web python manage.py createsuperuser` - Create admin user
+- `docker compose exec web python manage.py shell` - Open Django shell
+- `docker compose exec web pytest` - Run tests inside container
 - `docker compose exec web sh` - Open shell inside web container
 - `docker compose ps` - List running containers
 - `docker compose restart web` - Restart web service

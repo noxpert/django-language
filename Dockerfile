@@ -7,10 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     POETRY_VERSION=2.1.3 \
     POETRY_HOME=/opt/poetry \
     POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_VIRTUALENVS_CREATE=true \
-    POETRY_CACHE_DIR=/tmp/poetry_cache \
-    PATH="/app/.venv/bin:$PATH"
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
 
 # Set work directory
 WORKDIR /app
@@ -39,10 +37,10 @@ COPY . .
 RUN mkdir -p staticfiles
 
 # Collect static files (if needed)
-RUN poetry run python manage.py collectstatic --noinput || true
+RUN python manage.py collectstatic --noinput || true
 
 # Expose port
 EXPOSE 8000
 
 # Run migrations and start server
-CMD ["sh", "-c", "poetry run python manage.py migrate && poetry run python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
