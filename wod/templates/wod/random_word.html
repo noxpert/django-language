@@ -1,91 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word of the Day</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .word-card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .word {
-            font-size: 3em;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .language {
-            color: #7f8c8d;
-            font-size: 1.2em;
-            margin-bottom: 30px;
-        }
-        .translation {
-            font-size: 1.5em;
-            color: #3498db;
-            margin-bottom: 20px;
-        }
-        .definition {
-            font-size: 1.1em;
-            color: #34495e;
-            line-height: 1.6;
-        }
-        .label {
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9em;
-            color: #95a5a6;
-            margin-bottom: 5px;
-        }
-        .refresh-btn {
-            margin-top: 30px;
-            padding: 12px 24px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1em;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .refresh-btn:hover {
-            background-color: #2980b9;
-        }
-        .no-words {
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 1.2em;
-        }
-        .language-selector {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #ecf0f1;
-        }
-        .language-selector label {
-            font-weight: bold;
-            color: #2c3e50;
-            margin-right: 10px;
-        }
-        .language-selector select {
-            padding: 8px 12px;
-            font-size: 1em;
-            border: 2px solid #3498db;
-            border-radius: 4px;
-            background-color: white;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
+{% extends 'wod/base.html' %}
+{% load static %}
+
+{% block title %}Word of the Day{% endblock %}
+
+{% block content %}
     <div class="word-card">
         <div class="language-selector">
             <form method="get" action="{% url 'random_word' %}" id="languageForm">
@@ -102,6 +20,13 @@
         </div>
 
         {% if word %}
+            {% if word.language.code == 'hu' %}
+                <img src="{% static 'images/magyar.svg' %}" alt="Hungarian" class="language-icon">
+            {% elif word.language.code == 'de' %}
+                <img src="{% static 'images/deutsch.svg' %}" alt="German" class="language-icon">
+            {% else %}
+                <img src="{% static 'images/favicon-letters.svg' %}" alt="{{ word.language.name }}" class="language-icon">
+            {% endif %}
             <div class="word">{{ word.word }}</div>
             <div class="language">{{ word.language.name }}</div>
 
@@ -116,5 +41,4 @@
             <div class="no-words">No words available yet. Please add some words to get started!</div>
         {% endif %}
     </div>
-</body>
-</html>
+{% endblock %}
