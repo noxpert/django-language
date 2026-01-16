@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- German flag: black, red, gold horizontal stripes -->
+  <rect width="32" height="10.67" fill="#000000"/>
+  <rect y="10.67" width="32" height="10.67" fill="#DD0000"/>
+  <rect y="21.33" width="32" height="10.67" fill="#FFCE00"/>
+</svg>
