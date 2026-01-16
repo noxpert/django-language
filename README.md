@@ -53,6 +53,33 @@ A Django app that presents users with a daily word to learn in their target lang
 - `poetry run pytest --lf` - Run only last failed tests
 - `poetry run pytest --cov-report=html` - Generate HTML coverage report (see htmlcov/index.html)
 
+### Docker
+The most common workflow is: 
+
+`docker compose up --build` - (first time)
+
+`docker compose up` - to start
+
+`docker compose down` - when you're done
+
+#### Examples
+- `docker compose up --build` - Build and run containers (first time or after Dockerfile changes)
+- `docker compose up` - Run development server
+- `docker compose up -d` - Run containers in detached mode (runs in background)
+- `docker compose down` - Stop containers
+- `docker compose down -v` - Stop and remove volumes (removes database data)
+- `docker compose logs` - View logs from all services
+- `docker compose logs -f` - Follow logs in real-time
+- `docker compose logs web` - View logs for specific service
+- `docker compose exec web python manage.py <command>` - Run Django management commands
+- `docker compose exec web python manage.py migrate` - Apply database migrations
+- `docker compose exec web python manage.py createsuperuser` - Create admin user
+- `docker compose exec web python manage.py shell` - Open Django shell
+- `docker compose exec web pytest` - Run tests inside container
+- `docker compose exec web sh` - Open shell inside web container
+- `docker compose ps` - List running containers
+- `docker compose restart web` - Restart web service
+
 ## Status
 
-Currently in initial development phase. Docker containerization and detailed setup instructions will be added in upcoming changes.
+Currently in early development phase.
