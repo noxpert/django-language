@@ -1,0 +1,30 @@
+services:
+  web:
+    build: .
+    command: sh -c "poetry run python manage.py migrate && poetry run python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - /app/.venv  # Preserve the virtual environment from the build
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=djangolanguage.settings
+    stdin_open: true
+    tty: true
+
+  # Optional: Add a PostgreSQL database service
+  # Uncomment and configure if you want to use PostgreSQL instead of SQLite
+  # db:
+  #   image: postgres:16-alpine
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=djangolanguage
+  #     - POSTGRES_USER=djangouser
+  #     - POSTGRES_PASSWORD=changeme
+  #   ports:
+  #     - "5432:5432"
+
+# volumes:
+#   postgres_data:
