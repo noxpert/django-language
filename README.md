@@ -27,14 +27,18 @@ The application will support multiple languages:
 
 ## Apps
 
-### wod (Word of the Day)
+### vocabulary (Vocabulary Models)
 
-A Django app that presents users with a daily word to learn in their target language, helping build vocabulary through consistent daily practice.
+Core vocabulary models shared across the application.
 
 **Models:**
 
 * `Language` - Stores supported languages with code (e.g., 'en', 'hu', 'de'), name, and native language flag
-* `Word` - Stores vocabulary words with language reference, translation, definition, and timestamps
+* `Word` - Stores vocabulary words with language reference, word text, translation, optional definition, and timestamps
+
+### wod (Word of the Day)
+
+A Django app that presents users with a random word to learn in their target language, helping build vocabulary through consistent practice.
 
 ## Quick Start with Docker
 
@@ -91,6 +95,113 @@ The project includes a Makefile to simplify common development tasks. Run `make 
 ### Cleanup
 
 * `make clean` - Remove containers and volumes
+
+## Managing Vocabulary
+
+### Admin Interface
+
+The Django admin provides a user-friendly interface for managing languages and vocabulary words.
+
+**Access the admin:**
+
+1. Create a superuser (first time only): `make superuser`
+2. Start the application: `make up`
+3. Navigate to http://localhost:8000/admin
+4. Log in with your superuser credentials
+
+**Language Management:**
+
+* View all languages with word counts
+* Add new languages (code, name, native flag)
+* Edit or delete existing languages
+
+**Word Management:**
+
+* Add individual words with translations
+* Definition field is optional (can be added later)
+* Search by word, translation, or definition
+* Filter by language or date added
+* View words sorted by most recent first
+
+### Bulk Import from CSV
+
+For adding multiple words at once, use the CSV import command.
+
+**CSV Format:**
+
+Create a CSV file with the following columns (first row must be headers):
+
+```csv
+language_code,word,translation,definition
+hu,alma,apple,A fruit that grows on trees
+hu,ház,house,
+de,Buch,book,A written or printed work
+de,Wasser,water,
+```
+
+**Notes on CSV format:**
+* `language_code` - Required. Must match existing language (en, hu, de)
+* `word` - Required. The word in the target language
+* `translation` - Required. English translation
+* `definition` - Optional. Can be empty, add definitions later
+
+**Import Commands:**
+
+```bash
+# Preview import without making changes (recommended first step)
+make shell
+python manage.py import_words /path/to/words.csv --dry-run
+
+# Import words for real
+python manage.py import_words /path/to/words.csv
+
+# Skip duplicate words (default behavior)
+python manage.py import_words /path/to/words.csv --skip-duplicates
+```
+
+**Using Docker:**
+
+If your CSV file is on your host machine, you need to copy it into the container or mount it:
+
+```bash
+# Option 1: Copy file into running container
+docker cp words.csv django-language-web-1:/app/words.csv
+docker compose exec web python manage.py import_words /app/words.csv
+
+# Option 2: Place file in project directory (it's already mounted)
+# Just put words.csv in your project root, then:
+docker compose exec web python manage.py import_words /app/words.csv
+```
+
+**Import Output:**
+
+The command provides detailed feedback:
+* Success: Shows each word created/imported
+* Warnings: Shows skipped duplicates
+* Errors: Shows invalid rows with error messages
+* Summary: Total created, skipped, and errors
+
+**Example Output:**
+
+```
+Row 2: Created - alma → apple (hu) [with definition]
+Row 3: Created - ház → house (hu)
+Row 4: Skipped duplicate - Buch → book (de)
+==================================================
+Import Summary:
+  Created: 2
+  Skipped: 1
+  Errors:  0
+==================================================
+```
+
+**Tips for CSV Import:**
+
+* Always run with `--dry-run` first to preview changes
+* Keep a backup of your CSV file
+* Start with a small test file (5-10 words) to verify format
+* Definitions are optional - you can import words without them
+* The command skips duplicates by default to avoid data issues
 
 ## Development Commands (Alternative)
 

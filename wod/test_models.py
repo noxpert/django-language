@@ -64,3 +64,15 @@ class TestWordModel:
         words = Word.objects.all()
         assert words[0] == word2
         assert words[1] == word1
+
+    def test_create_word_without_definition(self):
+        language = Language.objects.create(code="hu", name="Hungarian", is_native=False)
+        word = Word.objects.create(
+            language=language,
+            word="víz",
+            translation="water",
+        )
+        assert word.word == "víz"
+        assert word.translation == "water"
+        assert word.definition == ""
+        assert word.language == language
