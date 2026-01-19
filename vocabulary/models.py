@@ -17,7 +17,7 @@ class Word(models.Model):
     language = models.ForeignKey(Language, on_delete=models.PROTECT)
     word = models.CharField(max_length=100)
     translation = models.CharField(max_length=100)
-    definition = models.TextField()
+    definition = models.TextField(blank=True, default="")
     added = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
