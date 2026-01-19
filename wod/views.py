@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from .models import Language, Word
+from vocabulary.models import Language, Word
 
 
 def random_word(request):
