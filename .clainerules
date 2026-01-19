@@ -1,0 +1,100 @@
+# Claude Context for django-language
+
+## Project Mission
+Django language learning app for English, Hungarian, and German. Three learning goals: AI-assisted development, technology stack mastery (Django/Python/Poetry/Docker), and building a practical application.
+
+## Tech Stack
+- Django 5.2.8, Python 3.14, Poetry 2.1.3
+- Docker (`python:3.14-slim`), SQLite (dev), MIT licensed
+- Django i18n for internationalization
+
+## Docker Setup
+- **No virtualenvs in containers**: `POETRY_VIRTUALENVS_CREATE=false`
+- Use `docker compose` (not `docker-compose`)
+- Standard workflow: `docker compose up --build` (first time), then `docker compose up`
+- Execute commands: `docker compose exec web python manage.py <command>`
+
+## Poetry
+- Modern syntax: use `--without dev`, never deprecated `--no-dev`
+- Add deps: `poetry add <pkg>` or `poetry add --group dev <pkg>`
+- Local commands: `poetry run python manage.py <command>`
+
+## Code Quality
+Tools: Black (formatter), Flake8 (linter), isort (imports), pytest (testing)
+
+Pre-commit: `poetry run black . && poetry run flake8 . && poetry run isort . && poetry run pytest`
+
+## Apps & Models
+
+### wod (Word of the Day)
+- `Language`: code (en/hu/de), name, native flag
+- `Word`: language FK, text, translation, definition, timestamps
+
+## Key Conventions
+- **Static files**: `static/` at root, use `{% load static %}` and `{% static %}` tags
+- **i18n**: Use `gettext_lazy` for all user-facing text, support en/hu/de
+- **Templates**: Organize by app, use template inheritance
+- **Models**: Include timestamps, `__str__` methods, proper FKs
+
+## Common Commands
+
+### Makefile (Recommended)
+The project includes a Makefile for simplified commands:
+```bash
+make help        # Show all available commands
+make build       # Build and start (first time)
+make up          # Start application (foreground with logs)
+make start       # Start application (background/detached)
+make down        # Stop application
+make test        # Run tests
+make shell       # Django shell
+make migrate     # Run migrations
+make format      # Format code (black + isort)
+make lint        # Run flake8
+```
+
+### Docker (Direct)
+```bash
+docker compose up --build    # First run
+docker compose up            # Normal start
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py createsuperuser
+docker compose exec web pytest
+```
+
+### Database
+```bash
+makemigrations [app]  # Create migrations
+migrate               # Apply migrations
+shell                 # Django shell
+```
+
+## GitHub Config
+- Main branch: `main`, auto-delete branches on PR merge
+- 15 commits, 2 contributors
+
+## Claude Guidelines
+- **Style**: Concise but educational, minimal formatting unless requested
+- **Approach**: Docker-first, modern Poetry syntax, suggest tests/linting
+- **Consider**: i18n, security, performance, Django best practices
+
+## Recent History (Jan 2025)
+- Dockerized with Poetry system-level installs (no venv in container)
+- Created SVG favicons: globe with ABC (selected), Hungarian/German flags
+- Enabled branch auto-delete on PR merge
+
+## Project Structure
+```
+django-language/
+├── djangolanguage/     # Settings
+├── wod/                # Word of the Day app
+├── static/             # Static files (favicon.svg)
+├── Dockerfile
+├── docker-compose.yml
+├── manage.py
+└── pyproject.toml
+```
+
+## Notes
+Learning project - explanations valued. Owner prefers concise communication with clear guidance. Update this file as project evolves.
+
