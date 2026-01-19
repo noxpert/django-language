@@ -1,15 +1,13 @@
 import pytest
 from django.urls import reverse
 
-from wod.models import Language, Word
+from vocabulary.models import Language, Word
 
 
 @pytest.mark.django_db
 class TestRandomWordView:
     def test_random_word_view_with_words(self, client):
-        language = Language.objects.create(
-            code="hu", name="Hungarian", is_native=False
-        )
+        language = Language.objects.create(code="hu", name="Hungarian", is_native=False)
         Word.objects.create(
             language=language,
             word="könyv",

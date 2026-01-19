@@ -1,22 +1,18 @@
 import pytest
 
-from wod.models import Language, Word
+from vocabulary.models import Language, Word
 
 
 @pytest.mark.django_db
 class TestLanguageModel:
     def test_create_language(self):
-        language = Language.objects.create(
-            code="es", name="Spanish", is_native=False
-        )
+        language = Language.objects.create(code="es", name="Spanish", is_native=False)
         assert language.code == "es"
         assert language.name == "Spanish"
         assert language.is_native is False
 
     def test_language_str(self):
-        language = Language.objects.create(
-            code="fr", name="French", is_native=False
-        )
+        language = Language.objects.create(code="fr", name="French", is_native=False)
         assert str(language) == "French"
 
     def test_language_code_unique(self):
@@ -28,9 +24,7 @@ class TestLanguageModel:
 @pytest.mark.django_db
 class TestWordModel:
     def test_create_word(self):
-        language = Language.objects.create(
-            code="hu", name="Hungarian", is_native=False
-        )
+        language = Language.objects.create(code="hu", name="Hungarian", is_native=False)
         word = Word.objects.create(
             language=language,
             word="alma",
@@ -44,9 +38,7 @@ class TestWordModel:
         assert word.updated is not None
 
     def test_word_str(self):
-        language = Language.objects.create(
-            code="de", name="German", is_native=False
-        )
+        language = Language.objects.create(code="de", name="German", is_native=False)
         word = Word.objects.create(
             language=language,
             word="Apfel",
@@ -56,9 +48,7 @@ class TestWordModel:
         assert str(word) == "Apfel (de)"
 
     def test_word_ordering(self):
-        language = Language.objects.create(
-            code="hu", name="Hungarian", is_native=False
-        )
+        language = Language.objects.create(code="hu", name="Hungarian", is_native=False)
         word1 = Word.objects.create(
             language=language,
             word="első",

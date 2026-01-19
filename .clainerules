@@ -26,9 +26,13 @@ Pre-commit: `poetry run black . && poetry run flake8 . && poetry run isort . && 
 
 ## Apps & Models
 
-### wod (Word of the Day)
+### vocabulary (Shared vocabulary models)
 - `Language`: code (en/hu/de), name, native flag
 - `Word`: language FK, text, translation, definition, timestamps
+
+### wod (Word of the Day)
+- Uses models from vocabulary app
+- Provides random word view functionality
 
 ## Key Conventions
 - **Static files**: `static/` at root, use `{% load static %}` and `{% static %}` tags
@@ -87,6 +91,7 @@ shell                 # Django shell
 ```
 django-language/
 ├── djangolanguage/     # Settings
+├── vocabulary/         # Shared vocabulary models (Language, Word)
 ├── wod/                # Word of the Day app
 ├── static/             # Static files (favicon.svg)
 ├── Dockerfile
