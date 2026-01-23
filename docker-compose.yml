@@ -9,21 +9,26 @@ services:
     environment:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=djangolanguage.settings
+      - DB_NAME=words
+      - DB_USER=django-words
+      - DB_PASSWORD=UseTheForeignKulcs!
+      - DB_HOST=db
+      - DB_PORT=5432
     stdin_open: true
     tty: true
+    depends_on:
+      - db
 
-  # Optional: Add a PostgreSQL database service
-  # Uncomment and configure if you want to use PostgreSQL instead of SQLite
-  # db:
-  #   image: postgres:16-alpine
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   environment:
-  #     - POSTGRES_DB=djangolanguage
-  #     - POSTGRES_USER=djangouser
-  #     - POSTGRES_PASSWORD=changeme
-  #   ports:
-  #     - "5432:5432"
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=words
+      - POSTGRES_USER=django-words
+      - POSTGRES_PASSWORD=UseTheForeignKulcs!
+    ports:
+      - "5432:5432"
 
-# volumes:
-#   postgres_data:
+volumes:
+  postgres_data:
