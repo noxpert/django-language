@@ -75,12 +75,16 @@ WSGI_APPLICATION = "djangolanguage.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+db_password = os.environ.get("DB_PASSWORD")
+if not db_password:
+    raise RuntimeError("DB_PASSWORD environment variable is required.")
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("DB_NAME", "words"),
         "USER": os.environ.get("DB_USER", "django-words"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "UseTheForeignKulcs!"),
+        "PASSWORD": db_password,
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
     }
