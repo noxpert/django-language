@@ -53,37 +53,37 @@ logs:
 
 # Django management commands
 shell:
-	docker compose exec web python manage.py shell
+	@docker compose exec web python manage.py shell 2>/dev/null || docker compose run --rm web python manage.py shell
 
 migrate:
-	docker compose exec web python manage.py migrate
+	@docker compose exec web python manage.py migrate 2>/dev/null || docker compose run --rm web python manage.py migrate
 
 makemigrations:
-	docker compose exec web python manage.py makemigrations
+	@docker compose exec web python manage.py makemigrations 2>/dev/null || docker compose run --rm web python manage.py makemigrations
 
 superuser:
-	docker compose exec web python manage.py createsuperuser
+	@docker compose exec web python manage.py createsuperuser 2>/dev/null || docker compose run --rm web python manage.py createsuperuser
 
 collectstatic:
-	docker compose exec web python manage.py collectstatic --noinput
+	@docker compose exec web python manage.py collectstatic --noinput 2>/dev/null || docker compose run --rm web python manage.py collectstatic --noinput
 
 # Testing and code quality
 test:
-	docker compose exec web pytest
+	@docker compose exec web pytest 2>/dev/null || docker compose run --rm web pytest
 
 test-v:
-	docker compose exec web pytest -v
+	@docker compose exec web pytest -v 2>/dev/null || docker compose run --rm web pytest -v
 
 test-cov:
-	docker compose exec web pytest --cov-report=html
+	@docker compose exec web pytest --cov-report=html 2>/dev/null || docker compose run --rm web pytest --cov-report=html
 	@echo "Coverage report generated in htmlcov/index.html"
 
 lint:
-	docker compose exec web flake8 .
+	@docker compose exec web flake8 . 2>/dev/null || docker compose run --rm web flake8 .
 
 format:
-	docker compose exec web black .
-	docker compose exec web isort .
+	@docker compose exec web black . 2>/dev/null || docker compose run --rm web black .
+	@docker compose exec web isort . 2>/dev/null || docker compose run --rm web isort .
 
 # Cleanup
 clean:
