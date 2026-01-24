@@ -1,4 +1,4 @@
-{% extends 'wod/base.html' %}
+{% extends "wod/base.html" %}
 {% load static %}
 
 {% block title %}Word of the Day{% endblock %}
@@ -20,7 +20,7 @@
         </div>
 
         {% if word %}
-            {% if word.language.code == 'hu' %}
+            {% if word.language.code == "hu" %}
                 <img src="{% static 'images/magyar.svg' %}" alt="Hungarian" class="language-icon">
             {% elif word.language.code == 'de' %}
                 <img src="{% static 'images/deutsch.svg' %}" alt="German" class="language-icon">
@@ -31,14 +31,14 @@
             <div class="language">{{ word.language.name }}</div>
 
             <div class="label">Translation</div>
-            <div class="translation">{{ word.translation }}</div>
+            <div class="translation">{{ translation }}</div>
 
             <div class="label">Definition</div>
             <div class="definition">{{ word.definition }}</div>
 
             <a href="?language={{ selected_language }}" class="refresh-btn">Show Another Word</a>
         {% else %}
-            <div class="no-words">No words available yet. Please add some words to get started!</div>
+            <div class="select-language">Select a language to see a random word.</div>
         {% endif %}
     </div>
 {% endblock %}
