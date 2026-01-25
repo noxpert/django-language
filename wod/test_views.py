@@ -23,14 +23,21 @@ class TestRandomWordView:
 
         Translation.objects.create(source_word=hu_word, target_word=en_word)
 
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
         # Should show the Hungarian word created above
         assert "könyv" in content
+        assert "book" in content
 
-        response = client.get(reverse("random_word"), {"language": "en"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "en", "target_language": "hu"},
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
@@ -43,7 +50,22 @@ class TestRandomWordView:
         assert response.status_code == 200
         content = response.content.decode()
         # Should show message about selecting language or no words available
-        assert "Select a language" in content or "No words" in content.lower()
+        assert "Choose languages" in content or "No words" in content
+
+    def test_random_word_defaults_to_first_pair(self, client):
+        english = Language.objects.create(code="en", name="English")
+        hungarian = Language.objects.create(code="hu", name="Hungarian")
+        hu_word = Word.objects.create(language=hungarian, word="toll")
+        en_word = Word.objects.create(language=english, word="pen")
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
+
+        response = client.get(reverse("random_word"))
+
+        assert response.status_code == 200
+        assert response.context["source_language"] == english.code
+        assert response.context["target_language"] == hungarian.code
+        content = response.content.decode()
+        assert "pen" in content or "toll" in content
 
     def test_random_word_view_language_filter(self, client):
         hungarian = Language.objects.create(code="hu", name="Hungarian")
@@ -60,84 +82,119 @@ class TestRandomWordView:
             word="Wasser",
             definition="H2O",
         )
+        hu_alt = Word.objects.create(
+            language=hungarian,
+            word="folyó",
+            definition="River",
+        )
         en_word = Word.objects.create(
             language=english,
             word="water",
         )
 
         Translation.objects.create(source_word=hu_word, target_word=en_word)
+        Translation.objects.create(source_word=hu_alt, target_word=de_word)
         Translation.objects.create(source_word=de_word, target_word=en_word)
 
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
         assert "víz" in content
+        assert "folyó" not in content
 
     def test_language_selector_only_shows_languages_with_words(self, client):
-        """Test that language selector only shows languages that have words."""
+        """Test that language selector only shows languages that have translations."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
-        Language.objects.create(code="en", name="English")
+        english = Language.objects.create(code="en", name="English")
         Language.objects.create(code="de", name="German")
 
-        # Only create a word in Hungarian
-        Word.objects.create(
+        # Only create a word in Hungarian and a translation to English
+        hu_word = Word.objects.create(
             language=hungarian,
             word="alma",
             definition="A fruit",
         )
+        en_word = Word.objects.create(
+            language=english,
+            word="apple",
+            definition="A fruit",
+        )
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
 
         response = client.get(reverse("random_word"))
-        content = response.content.decode()
+        languages = list(response.context["languages"])
+        language_codes = {lang.code for lang in languages}
 
-        # Hungarian should appear (has words)
-        assert "Hungarian" in content
+        # Hungarian and English should appear (translation pair)
+        assert "hu" in language_codes
+        assert "en" in language_codes
 
-        # English and German should NOT appear (no words)
-        # Check that they"re not in select options
-        assert "<option value='en'" not in content or "English" not in content
-        assert "<option value='de'" not in content or "German" not in content
+        # German should NOT appear (no words or translations)
+        assert "de" not in language_codes
 
     def test_random_word_with_definition(self, client):
         """Test that definition is displayed when present."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
+        english = Language.objects.create(code="en", name="English")
 
-        Word.objects.create(
+        hu_word = Word.objects.create(
             language=hungarian,
             word="alma",
             definition="Egy gyümölcs, amely fán terem",
         )
+        en_word = Word.objects.create(
+            language=english,
+            word="apple",
+            definition="A round fruit",
+        )
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
 
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
         content = response.content.decode()
 
         assert "alma" in content
-        assert "gyümölcs" in content  # Part of definition
+        assert "round fruit" in content
 
     def test_random_word_without_translation(self, client):
-        """Test displaying word that has no translations."""
+        """Test empty state when no translation exists for the selected pairing."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
+        german = Language.objects.create(code="de", name="German")
+        Language.objects.create(code="en", name="English")
 
-        Word.objects.create(
+        hu_word = Word.objects.create(
             language=hungarian,
             word="különleges",
             definition="Egyedi vagy ritka",
         )
+        de_word = Word.objects.create(language=german, word="besondere")
+        Translation.objects.create(source_word=hu_word, target_word=de_word)
 
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
-        assert "különleges" in content
-        # Should show "No translation" or similar
-        assert "No translation" in content or "translation" in content.lower()
+        assert "különleges" not in content
+        assert "No words are available" in content
 
     def test_random_word_empty_language_parameter(self, client):
         """Test view when language parameter is empty."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
-        Word.objects.create(language=hungarian, word="test")
+        english = Language.objects.create(code="en", name="English")
+        hu_word = Word.objects.create(language=hungarian, word="test")
+        en_word = Word.objects.create(language=english, word="test-en")
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
 
-        response = client.get(reverse("random_word"), {"language": ""})
+        response = client.get(reverse("random_word"), {"source_language": ""})
 
         assert response.status_code == 200
         # Should not crash, should handle empty language gracefully
@@ -145,9 +202,15 @@ class TestRandomWordView:
     def test_random_word_invalid_language(self, client):
         """Test view with non-existent language code."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
-        Word.objects.create(language=hungarian, word="test")
+        english = Language.objects.create(code="en", name="English")
+        hu_word = Word.objects.create(language=hungarian, word="test")
+        en_word = Word.objects.create(language=english, word="test-en")
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
 
-        response = client.get(reverse("random_word"), {"language": "xx"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "xx", "target_language": "en"},
+        )
 
         assert response.status_code == 200
         # Should handle gracefully, likely showing no word
@@ -170,7 +233,10 @@ class TestRandomWordView:
 
         Translation.objects.create(source_word=hu_word, target_word=en_word)
 
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
         content = response.content.decode()
 
         assert "ház" in content
@@ -194,13 +260,16 @@ class TestTranslationIntegration:
         Translation.objects.create(source_word=hu_word, target_word=en_word)
         Translation.objects.create(source_word=hu_word, target_word=de_word)
 
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
         # Should show Hungarian word
         assert "ház" in content
-        # Should show English translation (since view gets English translation)
+        # Should show English translation (target language)
         assert "house" in content
 
     def test_bidirectional_translations_display(self, client):
@@ -216,34 +285,45 @@ class TestTranslationIntegration:
         Translation.objects.create(source_word=en_word, target_word=hu_word)
 
         # Test Hungarian view
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
         assert response.status_code == 200
         content = response.content.decode()
         assert "víz" in content
 
         # Test English view
-        response = client.get(reverse("random_word"), {"language": "en"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "en", "target_language": "hu"},
+        )
         assert response.status_code == 200
         content = response.content.decode()
         assert "water" in content
 
     def test_get_translation_returns_none(self, client):
-        """Test word without English translation shows "No translation"."""
+        """Test empty state when no translation to the selected target exists."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
         german = Language.objects.create(code="de", name="German")
+        english = Language.objects.create(code="en", name="English")
 
         hu_word = Word.objects.create(language=hungarian, word="alma")
         de_word = Word.objects.create(language=german, word="Apfel")
+        Word.objects.create(language=english, word="apple")
 
         # Only create Hungarian to German translation (no English)
         Translation.objects.create(source_word=hu_word, target_word=de_word)
 
-        response = client.get(reverse("random_word"), {"language": "hu"})
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
 
         assert response.status_code == 200
         content = response.content.decode()
-        assert "alma" in content
-        assert "No translation" in content
+        assert "alma" not in content
+        assert "No words are available" in content
 
 
 @pytest.mark.django_db
@@ -256,9 +336,10 @@ class TestLanguageFiltering:
         english = Language.objects.create(code="en", name="English")
         Language.objects.create(code="de", name="German")
 
-        # Create words only in Hungarian and English
-        Word.objects.create(language=hungarian, word="alma")
-        Word.objects.create(language=english, word="apple")
+        # Create words in Hungarian and English with translations
+        hu_word = Word.objects.create(language=hungarian, word="alma")
+        en_word = Word.objects.create(language=english, word="apple")
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
 
         response = client.get(reverse("random_word"))
 
@@ -275,20 +356,23 @@ class TestLanguageFiltering:
     def test_language_appears_after_adding_word(self, client):
         """Test that language appears in selector after adding first word."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
+        english = Language.objects.create(code="en", name="English")
 
         # Initially, no words
         response = client.get(reverse("random_word"))
         languages = list(response.context["languages"])
         assert len(languages) == 0
 
-        # Add a word
-        Word.objects.create(language=hungarian, word="alma")
+        # Add a word and translation
+        hu_word = Word.objects.create(language=hungarian, word="alma")
+        en_word = Word.objects.create(language=english, word="apple")
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
 
-        # Now Hungarian should appear
+        # Now Hungarian and English should appear
         response = client.get(reverse("random_word"))
         languages = list(response.context["languages"])
-        assert len(languages) == 1
-        assert languages[0].code == "hu"
+        language_codes = {lang.code for lang in languages}
+        assert language_codes == {"hu", "en"}
 
     def test_multiple_languages_with_words(self, client):
         """Test multiple languages all appear when they have words."""
@@ -296,9 +380,11 @@ class TestLanguageFiltering:
         english = Language.objects.create(code="en", name="English")
         german = Language.objects.create(code="de", name="German")
 
-        Word.objects.create(language=hungarian, word="alma")
-        Word.objects.create(language=english, word="apple")
-        Word.objects.create(language=german, word="Apfel")
+        hu_word = Word.objects.create(language=hungarian, word="alma")
+        en_word = Word.objects.create(language=english, word="apple")
+        de_word = Word.objects.create(language=german, word="Apfel")
+        Translation.objects.create(source_word=hu_word, target_word=en_word)
+        Translation.objects.create(source_word=de_word, target_word=en_word)
 
         response = client.get(reverse("random_word"))
         languages = list(response.context["languages"])

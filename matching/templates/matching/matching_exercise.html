@@ -3,9 +3,7 @@
 
 {% block title %}{% trans "Matching Exercise" %}{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/matching.css' %}">
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block content %}
 <div class="match-page">
@@ -22,11 +20,23 @@
     <section class="match-controls">
         <form method="get" action="{% url 'matching:exercise' %}" class="match-form">
             <div class="match-field">
-                <label for="language">{% trans "Language" %}</label>
-                <select name="language" id="language" required>
+                <label for="source_language">{% trans "From language" %}</label>
+                <select name="source_language" id="source_language" required>
                     <option value="">{% trans "Select a language" %}</option>
                     {% for lang in languages %}
-                        <option value="{{ lang.code }}" {% if selected_language == lang.code %}selected{% endif %}>
+                        <option value="{{ lang.code }}" {% if source_language == lang.code %}selected{% endif %}>
+                            {{ lang.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="match-field">
+                <label for="target_language">{% trans "To language" %}</label>
+                <select name="target_language" id="target_language" required>
+                    <option value="">{% trans "Select a language" %}</option>
+                    {% for lang in languages %}
+                        <option value="{{ lang.code }}" {% if target_language == lang.code %}selected{% endif %}>
                             {{ lang.name }}
                         </option>
                     {% endfor %}
@@ -43,12 +53,10 @@
             </div>
 
             <div class="match-actions">
-                <button type="submit" class="match-primary">{% trans "Load set" %}</button>
-                {% if words %}
-                    <a class="match-secondary" href="?language={{ selected_language }}&count={{ count }}">
-                        {% trans "New set" %}
-                    </a>
-                {% endif %}
+                <button type="submit" class="action-primary">{% trans "Load set" %}</button>
+                <button type="button" class="action-secondary" id="match-flip">
+                    {% trans "Flip languages" %}
+                </button>
             </div>
         </form>
     </section>
@@ -77,10 +85,10 @@
                         <button
                             type="button"
                             class="match-item match-translation"
-                            data-translation="{{ translation }}"
+                            data-translation-id="{{ translation.id }}"
                             data-translation-index="{{ forloop.counter }}"
                         >
-                            {{ translation }}
+                            {{ translation.word }}
                         </button>
                     {% endfor %}
                 </div>
@@ -99,7 +107,7 @@
                 {% trans "Select a word and a translation to make a pair." %}
             </div>
             <div class="match-controls-inline">
-                <button type="button" class="match-secondary" id="match-reset">
+                <button type="button" class="action-secondary" id="match-reset">
                     {% trans "Reset matches" %}
                 </button>
             </div>
@@ -108,7 +116,7 @@
         <section class="match-results" id="match-results" data-state="idle" aria-live="polite"></section>
     {% else %}
         <section class="match-empty">
-            {% if selected_language %}
+            {% if source_language and target_language %}
                 <p>{% trans "No words are available for this language yet." %}</p>
             {% else %}
                 <p>{% trans "Choose a language and the number of words to start." %}</p>
@@ -119,6 +127,21 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    const matchForm = document.querySelector(".match-form");
+    const sourceSelect = document.getElementById("source_language");
+    const targetSelect = document.getElementById("target_language");
+    const flipButton = document.getElementById("match-flip");
+
+    if (flipButton && sourceSelect && targetSelect && matchForm) {
+        flipButton.addEventListener("click", () => {
+            const currentSource = sourceSelect.value;
+            sourceSelect.value = targetSelect.value;
+            targetSelect.value = currentSource;
+            matchForm.submit();
+        });
+    }
+</script>
 {% if words %}
 <script>
     const matches = new Map();
@@ -235,7 +258,7 @@
 
         const payload = {};
         matches.forEach((value, wordId) => {
-            payload[wordId] = value.translation;
+            payload[wordId] = value.translationId;
         });
 
         try {
@@ -269,10 +292,10 @@
 
     const createMatch = () => {
         const wordId = selectedWord.dataset.wordId;
-        const translation = selectedTranslation.dataset.translation;
+        const translationId = selectedTranslation.dataset.translationId;
         const translationIndex = selectedTranslation.dataset.translationIndex;
 
-        matches.set(wordId, { translation, index: translationIndex });
+        matches.set(wordId, { translationId, index: translationIndex });
 
         selectedWord.classList.remove("is-selected");
         selectedTranslation.classList.remove("is-selected");
