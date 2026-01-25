@@ -4,41 +4,78 @@
 {% block title %}Word of the Day{% endblock %}
 
 {% block content %}
-    <div class="word-card">
-        <div class="language-selector">
-            <form method="get" action="{% url 'random_word' %}" id="languageForm">
-                <label for="language">Select Language:</label>
-                <select name="language" id="language" onchange="this.form.submit()">
-                    <option value="">All Languages</option>
+<div class="wod-page">
+    <header class="wod-header">
+        <div class="wod-title">
+            <span class="wod-kicker">Practice</span>
+            <h1>Word of the Day</h1>
+            <p class="wod-subtitle">
+                Pick a source and target language to get a random pair.
+            </p>
+        </div>
+    </header>
+
+    <section class="wod-controls">
+        <form method="get" action="{% url 'random_word' %}" class="wod-form">
+            <div class="wod-field">
+                <label for="source_language">From language</label>
+                <select name="source_language" id="source_language" required>
+                    <option value="">Select a language</option>
                     {% for lang in languages %}
-                        <option value="{{ lang.code }}" {% if selected_language == lang.code %}selected{% endif %}>
+                        <option value="{{ lang.code }}" {% if source_language == lang.code %}selected{% endif %}>
                             {{ lang.name }}
                         </option>
                     {% endfor %}
                 </select>
-            </form>
-        </div>
+            </div>
 
-        {% if word %}
-            {% if word.language.code == "hu" %}
-                <img src="{% static 'images/magyar.svg' %}" alt="Hungarian" class="language-icon">
-            {% elif word.language.code == 'de' %}
-                <img src="{% static 'images/deutsch.svg' %}" alt="German" class="language-icon">
+            <div class="wod-field">
+                <label for="target_language">To language</label>
+                <select name="target_language" id="target_language" required>
+                    <option value="">Select a language</option>
+                    {% for lang in languages %}
+                        <option value="{{ lang.code }}" {% if target_language == lang.code %}selected{% endif %}>
+                            {{ lang.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="wod-actions">
+                <button type="submit" class="action-primary">Load word</button>
+            </div>
+        </form>
+    </section>
+
+    {% if word %}
+        <section class="wod-card">
+            <div class="wod-flag">
+                {% if word.language.code == "hu" %}
+                    <img src="{% static 'images/magyar.svg' %}" alt="Hungarian">
+                {% elif word.language.code == 'de' %}
+                    <img src="{% static 'images/deutsch.svg' %}" alt="German">
+                {% else %}
+                    <img src="{% static 'images/favicon-letters.svg' %}" alt="{{ word.language.name }}">
+                {% endif %}
+            </div>
+
+            <div class="wod-word">{{ word.word }}</div>
+            <div class="wod-language">{{ word.language.name }}</div>
+
+            <div class="wod-label">Translation</div>
+            <div class="wod-translation">{{ translation }}</div>
+
+            <div class="wod-label">Definition</div>
+            <div class="wod-definition">{{ translation_definition }}</div>
+        </section>
+    {% else %}
+        <section class="wod-empty">
+            {% if source_language and target_language %}
+                <p>No words are available for this pairing yet.</p>
             {% else %}
-                <img src="{% static 'images/favicon-letters.svg' %}" alt="{{ word.language.name }}" class="language-icon">
+                <p>Choose languages to see a random word.</p>
             {% endif %}
-            <div class="word">{{ word.word }}</div>
-            <div class="language">{{ word.language.name }}</div>
-
-            <div class="label">Translation</div>
-            <div class="translation">{{ translation }}</div>
-
-            <div class="label">Definition</div>
-            <div class="definition">{{ word.definition }}</div>
-
-            <a href="?language={{ selected_language }}" class="refresh-btn">Show Another Word</a>
-        {% else %}
-            <div class="select-language">Select a language to see a random word.</div>
-        {% endif %}
-    </div>
+        </section>
+    {% endif %}
+</div>
 {% endblock %}
