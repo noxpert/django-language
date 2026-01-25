@@ -1,28 +1,55 @@
+from django.db.models import Q
 from django.shortcuts import render
-from django.db.models import Count
 
 from vocabulary.models import Language, Word
 
 
 def random_word(request):
-    # Only show languages that have words
-    languages = Language.objects.annotate(
-        word_count=Count("words")
-    ).filter(word_count__gt=0)
+    languages = (
+        Language.objects.filter(words__isnull=False)
+        .filter(
+            Q(words__translations_from__isnull=False)
+            | Q(words__translations_to__isnull=False)
+        )
+        .distinct()
+        .order_by("name")
+    )
 
-    selected_language = request.GET.get("language")
+    source_language = request.GET.get("source_language")
+    target_language = request.GET.get("target_language")
     word = None
     translation = None
+    translation_definition = None
 
-    if selected_language:
-        # Get a random word in the selected language
-        words = Word.objects.random_words(selected_language, 1)
+    language_codes = list(languages.values_list("code", flat=True))
+    if language_codes:
+        if not source_language:
+            source_language = language_codes[0]
+        if not target_language:
+            target_language = next(
+                (code for code in language_codes if code != source_language),
+                source_language,
+            )
 
-        if words:  # Check if any words were returned
+    if source_language and target_language:
+        words = (
+            Word.objects.filter(language__code=source_language)
+            .filter(
+                Q(translations_from__target_word__language__code=target_language)
+                | Q(translations_to__source_word__language__code=target_language)
+            )
+            .distinct()
+            .order_by("?")[:1]
+        )
+
+        if words:
             word = words[0]
-            # Get English translation
-            en_translation = word.get_translation("en")
-            translation = en_translation.word if en_translation else "No translation"
+            target_translation = word.get_translation(target_language)
+            if target_translation:
+                translation = target_translation.word
+                translation_definition = target_translation.definition
+            else:
+                translation = ""
 
     return render(
         request,
@@ -30,7 +57,9 @@ def random_word(request):
         {
             "word": word,
             "translation": translation,
+            "translation_definition": translation_definition,
             "languages": languages,
-            "selected_language": selected_language,
+            "source_language": source_language,
+            "target_language": target_language,
         },
     )
