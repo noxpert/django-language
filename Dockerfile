@@ -36,9 +36,6 @@ COPY . .
 # Create directory for static files
 RUN mkdir -p staticfiles
 
-# Collect static files (if needed)
-RUN python manage.py collectstatic --noinput || true
-
 # Expose port
 EXPOSE 8000
 
