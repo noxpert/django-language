@@ -79,6 +79,8 @@ test-cov:
 	@echo "Coverage report generated in htmlcov/index.html"
 
 lint:
+	@docker compose exec web black --check . 2>/dev/null || docker compose run --rm web black --check .
+	@docker compose exec web isort --check-only . 2>/dev/null || docker compose run --rm web isort --check-only .
 	@docker compose exec web flake8 . 2>/dev/null || docker compose run --rm web flake8 .
 
 format:
@@ -89,4 +91,3 @@ format:
 clean:
 	docker compose down -v
 	@echo "Containers and volumes removed"
-
