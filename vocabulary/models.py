@@ -25,12 +25,12 @@ class WordManager(models.Manager):
 class Word(models.Model):
     """A word in a specific language with its native definition."""
 
-    language = models.ForeignKey(Language, on_delete=models.PROTECT, related_name="words")
+    language = models.ForeignKey(
+        Language, on_delete=models.PROTECT, related_name="words"
+    )
     word = models.CharField(max_length=100)
     definition = models.TextField(
-        blank=True,
-        default="",
-        help_text="Definition in the same language as the word"
+        blank=True, default="", help_text="Definition in the same language as the word"
     )
     added = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -60,11 +60,17 @@ class Word(models.Model):
         # Collect all translated words
         translated_words = []
         for trans in translations_as_source:
-            if target_language is None or trans.target_word.language.code == target_language:
+            if (
+                target_language is None
+                or trans.target_word.language.code == target_language
+            ):
                 translated_words.append(trans.target_word)
 
         for trans in translations_as_target:
-            if target_language is None or trans.source_word.language.code == target_language:
+            if (
+                target_language is None
+                or trans.source_word.language.code == target_language
+            ):
                 translated_words.append(trans.source_word)
 
         return translated_words
@@ -93,14 +99,10 @@ class Translation(models.Model):
     """
 
     source_word = models.ForeignKey(
-        Word,
-        on_delete=models.CASCADE,
-        related_name="translations_from"
+        Word, on_delete=models.CASCADE, related_name="translations_from"
     )
     target_word = models.ForeignKey(
-        Word,
-        on_delete=models.CASCADE,
-        related_name="translations_to"
+        Word, on_delete=models.CASCADE, related_name="translations_to"
     )
     confidence = models.CharField(
         max_length=20,
@@ -110,12 +112,12 @@ class Translation(models.Model):
             ("approximate", "Approximate"),
         ],
         default="exact",
-        help_text="How closely these words match in meaning"
+        help_text="How closely these words match in meaning",
     )
     notes = models.TextField(
         blank=True,
         default="",
-        help_text="Context or usage notes for this translation pair"
+        help_text="Context or usage notes for this translation pair",
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -126,6 +128,7 @@ class Translation(models.Model):
     def clean(self):
         """Ensure words are in different languages."""
         from django.core.exceptions import ValidationError
+
         if self.source_word.language == self.target_word.language:
             raise ValidationError("Cannot translate a word to the same language")
 

@@ -6,7 +6,7 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from vocabulary.models import Language, Word, Translation
+from vocabulary.models import Language, Translation, Word
 
 
 @pytest.mark.django_db
@@ -116,12 +116,8 @@ hu,teszt,test,Teszt szó"""
         english = Language.objects.get(code="en")
 
         # Create existing word and translation
-        hu_word = Word.objects.create(
-            language=hungarian, word="alma", definition=""
-        )
-        en_word = Word.objects.create(
-            language=english, word="apple", definition=""
-        )
+        hu_word = Word.objects.create(language=hungarian, word="alma", definition="")
+        en_word = Word.objects.create(language=english, word="apple", definition="")
         Translation.objects.create(source_word=hu_word, target_word=en_word)
 
         csv_content = """language_code,word,translation,definition
@@ -191,8 +187,10 @@ hu,alma"""
             with pytest.raises(CommandError) as exc_info:
                 call_command("import_words", csv_file)
 
-            assert "must contain columns" in str(exc_info.value).lower() or \
-                   "missing" in str(exc_info.value).lower()
+            assert (
+                "must contain columns" in str(exc_info.value).lower()
+                or "missing" in str(exc_info.value).lower()
+            )
         finally:
             Path(csv_file).unlink()
 
@@ -201,8 +199,10 @@ hu,alma"""
         with pytest.raises(CommandError) as exc_info:
             call_command("import_words", "/nonexistent/file.csv")
 
-        assert "File not found" in str(exc_info.value) or \
-               "not found" in str(exc_info.value).lower()
+        assert (
+            "File not found" in str(exc_info.value)
+            or "not found" in str(exc_info.value).lower()
+        )
 
     def test_mixed_results(self, setup_languages, create_csv):
         """Test import with mix of success, skips, and errors."""
@@ -231,7 +231,9 @@ hu,víz,water,Valid"""
 
             output = out.getvalue()
             # Should report some combination of created/skipped/errors
-            assert any(word in output.lower() for word in ["created", "skipped", "error"])
+            assert any(
+                word in output.lower() for word in ["created", "skipped", "error"]
+            )
         finally:
             Path(csv_file).unlink()
 
@@ -271,11 +273,14 @@ hu,alma,apple,Gyümölcs"""
             en_word = Word.objects.get(word="apple")
 
             # Check at least one direction exists
-            assert Translation.objects.filter(
-                source_word=hu_word, target_word=en_word
-            ).exists() or Translation.objects.filter(
-                source_word=en_word, target_word=hu_word
-            ).exists()
+            assert (
+                Translation.objects.filter(
+                    source_word=hu_word, target_word=en_word
+                ).exists()
+                or Translation.objects.filter(
+                    source_word=en_word, target_word=hu_word
+                ).exists()
+            )
         finally:
             Path(csv_file).unlink()
 

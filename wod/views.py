@@ -1,14 +1,14 @@
-from django.shortcuts import render
 from django.db.models import Count
+from django.shortcuts import render
 
 from vocabulary.models import Language, Word
 
 
 def random_word(request):
     # Only show languages that have words
-    languages = Language.objects.annotate(
-        word_count=Count("words")
-    ).filter(word_count__gt=0)
+    languages = Language.objects.annotate(word_count=Count("words")).filter(
+        word_count__gt=0
+    )
 
     selected_language = request.GET.get("language")
     word = None

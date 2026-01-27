@@ -4,7 +4,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from vocabulary.models import Language, Word, Translation
+from vocabulary.models import Language, Translation, Word
 
 
 class Command(BaseCommand):
@@ -14,35 +14,35 @@ class Command(BaseCommand):
         parser.add_argument(
             "csv_file",
             type=str,
-            help="Path to CSV file with columns: language_code, word, translation, definition"
+            help="Path to CSV file with columns: language_code, word, translation, definition",
         )
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Show what would be imported without actually importing"
+            help="Show what would be imported without actually importing",
         )
         parser.add_argument(
             "--skip-duplicates",
             action="store_true",
-            help="Skip words that already exist instead of updating them"
+            help="Skip words that already exist instead of updating them",
         )
         parser.add_argument(
             "--target-language",
             type=str,
             default="en",
-            help="Language code for translations (default: en for English)"
+            help="Language code for translations (default: en for English)",
         )
         parser.add_argument(
             "--bidirectional",
             action="store_true",
-            help="Create translations in both directions (A→B and B→A)"
+            help="Create translations in both directions (A→B and B→A)",
         )
         parser.add_argument(
             "--confidence",
             type=str,
             choices=["exact", "close", "approximate"],
             default="exact",
-            help="Translation confidence level (default: exact)"
+            help="Translation confidence level (default: exact)",
         )
 
     def handle(self, *args, **options):
@@ -71,18 +71,25 @@ class Command(BaseCommand):
             "updated": 0,
             "skipped": 0,
             "errors": 0,
-            "translations_created": 0
+            "translations_created": 0,
         }
 
         if dry_run:
-            self.stdout.write(self.style.WARNING("DRY RUN MODE - No changes will be made"))
+            self.stdout.write(
+                self.style.WARNING("DRY RUN MODE - No changes will be made")
+            )
 
         try:
             with open(csv_file, "r", encoding="utf-8") as f:
                 reader = csv.DictReader(f)
 
                 # Validate required columns
-                required_columns = {"language_code", "word", "translation", "definition"}
+                required_columns = {
+                    "language_code",
+                    "word",
+                    "translation",
+                    "definition",
+                }
                 if not required_columns.issubset(set(reader.fieldnames or [])):
                     raise CommandError(
                         f"CSV must contain columns: {", ".join(required_columns)}"
@@ -97,32 +104,30 @@ class Command(BaseCommand):
                                 skip_duplicates,
                                 dry_run,
                                 bidirectional,
-                                confidence
+                                confidence,
                             )
                             stats[result] += 1
 
                             # Count translations separately
                             if result == "created" and not dry_run:
                                 # Check if translation was created
-                                source_lang = Language.objects.get(code=row["language_code"])
+                                source_lang = Language.objects.get(
+                                    code=row["language_code"]
+                                )
                                 source_word = Word.objects.get(
-                                    language=source_lang,
-                                    word=row["word"]
+                                    language=source_lang, word=row["word"]
                                 )
                                 target_word = Word.objects.get(
-                                    language=target_language,
-                                    word=row["translation"]
+                                    language=target_language, word=row["translation"]
                                 )
 
                                 # Count how many translations were created
                                 trans_count = Translation.objects.filter(
-                                    source_word=source_word,
-                                    target_word=target_word
+                                    source_word=source_word, target_word=target_word
                                 ).count()
                                 if bidirectional:
                                     trans_count += Translation.objects.filter(
-                                        source_word=target_word,
-                                        target_word=source_word
+                                        source_word=target_word, target_word=source_word
                                     ).count()
                                 stats["translations_created"] += trans_count
 
@@ -166,8 +171,9 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"\nSuccessfully imported {stats["created"]} words!")
             )
 
-    def _process_row(self, row, target_language, skip_duplicates, dry_run,
-                     bidirectional, confidence):
+    def _process_row(
+        self, row, target_language, skip_duplicates, dry_run, bidirectional, confidence
+    ):
         """
         Process a single CSV row and create/update words and translations.
         Returns: "created", "updated", or "skipped"
@@ -179,7 +185,9 @@ class Command(BaseCommand):
 
         # Validate required fields
         if not language_code or not word_text or not translation_text:
-            raise ValueError("Missing required field (language_code, word, or translation)")
+            raise ValueError(
+                "Missing required field (language_code, word, or translation)"
+            )
 
         # Get source language
         try:
@@ -189,8 +197,7 @@ class Command(BaseCommand):
 
         # Check if source word already exists
         source_word = Word.objects.filter(
-            language=source_language,
-            word=word_text
+            language=source_language, word=word_text
         ).first()
 
         if source_word and skip_duplicates:
@@ -210,27 +217,20 @@ class Command(BaseCommand):
             action = "updated"
         else:
             source_word = Word.objects.create(
-                language=source_language,
-                word=word_text,
-                definition=definition
+                language=source_language, word=word_text, definition=definition
             )
             action = "created"
 
         # Create or get target word (translation)
         target_word, created = Word.objects.get_or_create(
-            language=target_language,
-            word=translation_text,
-            defaults={"definition": ""}
+            language=target_language, word=translation_text, defaults={"definition": ""}
         )
 
         # Create translation link (source → target)
         Translation.objects.get_or_create(
             source_word=source_word,
             target_word=target_word,
-            defaults={
-                "confidence": confidence,
-                "notes": "Imported from CSV"
-            }
+            defaults={"confidence": confidence, "notes": "Imported from CSV"},
         )
 
         # Optionally create bidirectional translation (target → source)
@@ -240,8 +240,8 @@ class Command(BaseCommand):
                 target_word=source_word,
                 defaults={
                     "confidence": confidence,
-                    "notes": "Imported from CSV (bidirectional)"
-                }
+                    "notes": "Imported from CSV (bidirectional)",
+                },
             )
 
         self.stdout.write(

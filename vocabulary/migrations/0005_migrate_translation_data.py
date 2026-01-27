@@ -15,10 +15,7 @@ def migrate_translations(apps, schema_editor):
 
     # Get or create English language (assuming translations are in English)
     # Adjust this if your translations are in a different language
-    english, _ = Language.objects.get_or_create(
-        code="en",
-        defaults={"name": "English"}
-    )
+    english, _ = Language.objects.get_or_create(code="en", defaults={"name": "English"})
 
     migrated_count = 0
     skipped_count = 0
@@ -32,7 +29,7 @@ def migrate_translations(apps, schema_editor):
                 word=word.translation,
                 defaults={
                     "definition": "",  # Can be filled in later
-                }
+                },
             )
 
             # Create the translation link (only if it doesn"t already exist)
@@ -41,8 +38,8 @@ def migrate_translations(apps, schema_editor):
                 target_word=english_word,
                 defaults={
                     "confidence": "exact",
-                    "notes": "Migrated from old translation field"
-                }
+                    "notes": "Migrated from old translation field",
+                },
             )
 
             migrated_count += 1
@@ -52,7 +49,9 @@ def migrate_translations(apps, schema_editor):
             skipped_count += 1
             continue
 
-    print(f"Migration complete: {migrated_count} translations created, {skipped_count} skipped")
+    print(
+        f"Migration complete: {migrated_count} translations created, {skipped_count} skipped"
+    )
 
 
 def reverse_migration(apps, schema_editor):

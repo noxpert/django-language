@@ -1,8 +1,8 @@
 import pytest
 from django.contrib.admin.sites import AdminSite
 
-from vocabulary.admin import LanguageAdmin, WordAdmin, TranslationAdmin
-from vocabulary.models import Language, Word, Translation
+from vocabulary.admin import LanguageAdmin, TranslationAdmin, WordAdmin
+from vocabulary.models import Language, Translation, Word
 
 
 @pytest.mark.django_db

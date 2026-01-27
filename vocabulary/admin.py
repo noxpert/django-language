@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Language, Word, Translation
+
+from .models import Language, Translation, Word
 
 
 @admin.register(Language)
@@ -16,6 +17,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
 class TranslationInline(admin.TabularInline):
     """Show translations inline when editing a word."""
+
     model = Translation
     fk_name = "source_word"
     extra = 1
@@ -32,7 +34,14 @@ class WordAdmin(admin.ModelAdmin):
     Definition is optional - you can add it later.
     For bulk imports, use: python manage.py import_words <file.csv>
     """
-    list_display = ["word", "language", "definition_preview", "translation_count", "added"]
+
+    list_display = [
+        "word",
+        "language",
+        "definition_preview",
+        "translation_count",
+        "added",
+    ]
     list_filter = ["language", "added"]
     search_fields = ["word", "definition"]
     autocomplete_fields = ["language"]
@@ -42,7 +51,11 @@ class WordAdmin(admin.ModelAdmin):
     def definition_preview(self, obj):
         """Show truncated definition."""
         if obj.definition:
-            return obj.definition[:50] + "..." if len(obj.definition) > 50 else obj.definition
+            return (
+                obj.definition[:50] + "..."
+                if len(obj.definition) > 50
+                else obj.definition
+            )
         return "-"
 
     definition_preview.short_description = "Definition"
@@ -65,14 +78,7 @@ class TranslationAdmin(admin.ModelAdmin):
     autocomplete_fields = ["source_word", "target_word"]
     readonly_fields = ["created", "updated"]
     fieldsets = [
-        ("Translation Pair", {
-            "fields": ["source_word", "target_word"]
-        }),
-        ("Details", {
-            "fields": ["confidence", "notes"]
-        }),
-        ("Metadata", {
-            "fields": ["created", "updated"],
-            "classes": ["collapse"]
-        }),
+        ("Translation Pair", {"fields": ["source_word", "target_word"]}),
+        ("Details", {"fields": ["confidence", "notes"]}),
+        ("Metadata", {"fields": ["created", "updated"], "classes": ["collapse"]}),
     ]
