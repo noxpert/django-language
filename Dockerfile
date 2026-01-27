@@ -40,4 +40,4 @@ RUN mkdir -p staticfiles
 EXPOSE 8000
 
 # Start server
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:${PORT:-8000}"]
+CMD ["sh", "/app/entrypoint.sh"]
