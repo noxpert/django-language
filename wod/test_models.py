@@ -1,7 +1,7 @@
 import pytest
 from django.core.exceptions import ValidationError
 
-from vocabulary.models import Language, Word, Translation
+from vocabulary.models import Language, Translation, Word
 
 
 @pytest.mark.django_db
@@ -150,9 +150,7 @@ class TestTranslationModel:
         en_word = Word.objects.create(language=english, word="apple")
 
         translation = Translation.objects.create(
-            source_word=hu_word,
-            target_word=en_word,
-            confidence="exact"
+            source_word=hu_word, target_word=en_word, confidence="exact"
         )
 
         assert translation.source_word == hu_word
@@ -169,8 +167,7 @@ class TestTranslationModel:
         en_word = Word.objects.create(language=english, word="apple")
 
         translation = Translation.objects.create(
-            source_word=hu_word,
-            target_word=en_word
+            source_word=hu_word, target_word=en_word
         )
 
         assert str(translation) == "alma → apple"
@@ -187,7 +184,7 @@ class TestTranslationModel:
             source_word=hu_word,
             target_word=en_word,
             confidence="close",
-            notes="Can also mean 'building' in some contexts"
+            notes="Can also mean 'building' in some contexts",
         )
 
         assert translation.notes == "Can also mean 'building' in some contexts"

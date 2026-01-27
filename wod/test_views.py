@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from vocabulary.models import Language, Word, Translation
+from vocabulary.models import Language, Translation, Word
 
 
 @pytest.mark.django_db

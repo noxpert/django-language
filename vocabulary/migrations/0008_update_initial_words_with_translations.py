@@ -17,17 +17,19 @@ def update_words_and_create_translations(apps, schema_editor):
     en_book, _ = Word.objects.get_or_create(
         language=english,
         word="book",
-        defaults={"definition": "A written or printed work consisting of pages bound together"}
+        defaults={
+            "definition": "A written or printed work consisting of pages bound together"
+        },
     )
     en_house, _ = Word.objects.get_or_create(
         language=english,
         word="house",
-        defaults={"definition": "A building for human habitation"}
+        defaults={"definition": "A building for human habitation"},
     )
     en_water, _ = Word.objects.get_or_create(
         language=english,
         word="water",
-        defaults={"definition": "A clear liquid essential for life"}
+        defaults={"definition": "A clear liquid essential for life"},
     )
 
     # Update Hungarian words with Hungarian definitions
@@ -45,7 +47,9 @@ def update_words_and_create_translations(apps, schema_editor):
 
     # Update German words with German definitions
     de_book = Word.objects.get(language=german, word="Buch")
-    de_book.definition = "Ein geschriebenes oder gedrucktes Werk aus zusammengebundenen Seiten"
+    de_book.definition = (
+        "Ein geschriebenes oder gedrucktes Werk aus zusammengebundenen Seiten"
+    )
     de_book.save()
 
     de_house = Word.objects.get(language=german, word="Haus")
@@ -61,51 +65,51 @@ def update_words_and_create_translations(apps, schema_editor):
     Translation.objects.get_or_create(
         source_word=hu_book,
         target_word=en_book,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
     Translation.objects.get_or_create(
         source_word=hu_house,
         target_word=en_house,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
     Translation.objects.get_or_create(
         source_word=hu_water,
         target_word=en_water,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
 
     # German <-> English
     Translation.objects.get_or_create(
         source_word=de_book,
         target_word=en_book,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
     Translation.objects.get_or_create(
         source_word=de_house,
         target_word=en_house,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
     Translation.objects.get_or_create(
         source_word=de_water,
         target_word=en_water,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
 
     # Optional: Create Hungarian <-> German direct links
     Translation.objects.get_or_create(
         source_word=hu_book,
         target_word=de_book,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
     Translation.objects.get_or_create(
         source_word=hu_house,
         target_word=de_house,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
     Translation.objects.get_or_create(
         source_word=hu_water,
         target_word=de_water,
-        defaults={'confidence': 'exact', 'notes': 'Initial data migration'}
+        defaults={"confidence": "exact", "notes": "Initial data migration"},
     )
 
 
@@ -125,7 +129,7 @@ def reverse_migration(apps, schema_editor):
     # Reset Hungarian and German definitions to empty
     hungarian = Language.objects.get(code="hu")
     german = Language.objects.get(code="de")
-    
+
     Word.objects.filter(language=hungarian).update(definition="")
     Word.objects.filter(language=german).update(definition="")
 
@@ -133,12 +137,12 @@ def reverse_migration(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('vocabulary', '0007_rename_vocabulary_t_source__idx_vocabulary__source__7554cf_idx_and_more'),
+        (
+            "vocabulary",
+            "0007_rename_vocabulary_t_source__idx_vocabulary__source__7554cf_idx_and_more",
+        ),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_words_and_create_translations,
-            reverse_migration
-        ),
+        migrations.RunPython(update_words_and_create_translations, reverse_migration),
     ]
