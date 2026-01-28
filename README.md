@@ -40,6 +40,10 @@ Core vocabulary models shared across the application.
 
 A Django app that presents users with a random word to learn in their target language, helping build vocabulary through consistent practice.
 
+### matching (Word Matching Exercise)
+
+A Django app that presents a short matching exercise where users pair source words with translations. Users choose the source/target languages and the number of words to practice.
+
 ## Quick Start with Docker
 
 The easiest way to run this project is using Docker and the provided Makefile:
@@ -255,4 +259,3 @@ Currently in active development. Core features and infrastructure are in place.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
