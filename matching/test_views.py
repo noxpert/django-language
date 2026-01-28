@@ -99,6 +99,24 @@ class MatchingExerciseViewTests(TestCase):
         words = response.context["words"]
         self.assertNotIn(non_matching_word, words)
 
+    def test_exercise_view_same_language_message(self):
+        response = self.client.get(
+            reverse("matching:exercise"),
+            {
+                "source_language": self.language.code,
+                "target_language": self.language.code,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["same_language"])
+        self.assertEqual(len(response.context["words"]), 0)
+        content = response.content.decode()
+        self.assertIn(
+            "Please choose two different languages to start the exercise.",
+            content,
+        )
+
 
 class MatchingCheckViewTests(TestCase):
     def setUp(self):

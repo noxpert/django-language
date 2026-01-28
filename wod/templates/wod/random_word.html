@@ -54,6 +54,8 @@
                     <img src="{% static 'images/magyar.svg' %}" alt="Hungarian">
                 {% elif word.language.code == 'de' %}
                     <img src="{% static 'images/deutsch.svg' %}" alt="German">
+                {% elif word.language.code == 'en' %}
+                    <img src="{% static 'images/united-states.svg' %}" alt="German">
                 {% else %}
                     <img src="{% static 'images/favicon-letters.svg' %}" alt="{{ word.language.name }}">
                 {% endif %}
@@ -78,4 +80,17 @@
         </section>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const wodForm = document.querySelector(".wod-form");
+    const sourceSelect = document.getElementById("source_language");
+    const targetSelect = document.getElementById("target_language");
+
+    if (sourceSelect && targetSelect && wodForm) {
+        sourceSelect.addEventListener("change", () => wodForm.submit());
+        targetSelect.addEventListener("change", () => wodForm.submit());
+    }
+</script>
 {% endblock %}
