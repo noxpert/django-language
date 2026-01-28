@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% load static %}
+{% load static i18n %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,24 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    {% with current_view=request.resolver_match.view_name %}
+    <nav class="site-nav">
+        <div class="site-nav-inner">
+            <a
+                class="site-nav-link {% if current_view == 'random_word' %}is-active{% endif %}"
+                href="{% url 'random_word' %}"
+            >
+                {% trans "Word of the Day" %}
+            </a>
+            <a
+                class="site-nav-link {% if current_view == 'matching:exercise' %}is-active{% endif %}"
+                href="{% url 'matching:exercise' %}"
+            >
+                {% trans "Word Matching" %}
+            </a>
+        </div>
+    </nav>
+    {% endwith %}
     {% block content %}
     {% endblock %}
     {% block extra_js %}{% endblock %}

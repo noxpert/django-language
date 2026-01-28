@@ -44,6 +44,10 @@ A Django app that presents users with a random word to learn in their target lan
 
 A Django app that presents a short matching exercise where users pair source words with translations. Users choose the source/target languages and the number of words to practice.
 
+## Navigation
+
+The language-learning pages share a common navigation bar with links to Word of the Day and Word Matching, the current page is highlighted.
+
 ## Quick Start with Docker
 
 The easiest way to run this project is using Docker and the provided Makefile:

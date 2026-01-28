@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.test import TestCase
 from django.urls import reverse
@@ -116,6 +117,18 @@ class MatchingExerciseViewTests(TestCase):
             "Please choose two different languages to start the exercise.",
             content,
         )
+
+    def test_navigation_active_on_matching(self):
+        response = self.client.get(reverse("matching:exercise"))
+
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn("Word Matching", content)
+
+        active_pattern = re.compile(
+            rf'class="site-nav-link is-active"[^>]*href="{re.escape(reverse("matching:exercise"))}"'
+        )
+        self.assertRegex(content, active_pattern)
 
 
 class MatchingCheckViewTests(TestCase):
