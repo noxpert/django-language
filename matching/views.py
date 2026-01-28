@@ -42,7 +42,10 @@ def matching_exercise(request):
 
     words = []
     translations = []
-    if source_language and target_language:
+    same_language = False
+    if source_language and target_language and source_language == target_language:
+        same_language = True
+    elif source_language and target_language:
         word_queryset = (
             Word.objects.filter(language__code=source_language)
             .filter(
@@ -68,6 +71,7 @@ def matching_exercise(request):
         "count_options": list(range(2, 11)),
         "words": words,
         "translations": translations,
+        "same_language": same_language,
     }
     return render(request, "matching/matching_exercise.html", context)
 

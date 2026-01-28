@@ -81,3 +81,16 @@
     {% endif %}
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    const wodForm = document.querySelector(".wod-form");
+    const sourceSelect = document.getElementById("source_language");
+    const targetSelect = document.getElementById("target_language");
+
+    if (sourceSelect && targetSelect && wodForm) {
+        sourceSelect.addEventListener("change", () => wodForm.submit());
+        targetSelect.addEventListener("change", () => wodForm.submit());
+    }
+</script>
+{% endblock %}

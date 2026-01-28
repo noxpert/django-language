@@ -116,7 +116,9 @@
         <section class="match-results" id="match-results" data-state="idle" aria-live="polite"></section>
     {% else %}
         <section class="match-empty">
-            {% if source_language and target_language %}
+            {% if same_language %}
+                <p>{% trans "Please choose two different languages to start the exercise." %}</p>
+            {% elif source_language and target_language %}
                 <p>{% trans "No words are available for this language yet." %}</p>
             {% else %}
                 <p>{% trans "Choose a language and the number of words to start." %}</p>
@@ -131,7 +133,14 @@
     const matchForm = document.querySelector(".match-form");
     const sourceSelect = document.getElementById("source_language");
     const targetSelect = document.getElementById("target_language");
+    const countSelect = document.getElementById("count");
     const flipButton = document.getElementById("match-flip");
+
+    if (sourceSelect && targetSelect && countSelect && matchForm) {
+        sourceSelect.addEventListener("change", () => matchForm.submit());
+        targetSelect.addEventListener("change", () => matchForm.submit());
+        countSelect.addEventListener("change", () => matchForm.submit());
+    }
 
     if (flipButton && sourceSelect && targetSelect && matchForm) {
         flipButton.addEventListener("click", () => {
