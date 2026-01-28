@@ -54,6 +54,8 @@
                     <img src="{% static 'images/magyar.svg' %}" alt="Hungarian">
                 {% elif word.language.code == 'de' %}
                     <img src="{% static 'images/deutsch.svg' %}" alt="German">
+                {% elif word.language.code == 'en' %}
+                    <img src="{% static 'images/united-states.svg' %}" alt="German">
                 {% else %}
                     <img src="{% static 'images/favicon-letters.svg' %}" alt="{{ word.language.name }}">
                 {% endif %}
