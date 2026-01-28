@@ -32,6 +32,11 @@ DEBUG = os.getenv("DEBUG", "True").strip().lower() in {"1", "true", "yes", "on"}
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".onrender.com,localhost,127.0.0.1")
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(",") if host.strip()]
 
+csrf_trusted = os.getenv("CSRF_TRUSTED_ORIGINS", "https://*.onrender.com")
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in csrf_trusted.split(",") if origin.strip()
+]
+
 
 # Application definition
 
