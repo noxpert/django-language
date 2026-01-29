@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.urls import reverse
 
@@ -198,6 +200,18 @@ class TestRandomWordView:
 
         assert response.status_code == 200
         # Should not crash, should handle empty language gracefully
+
+    def test_navigation_active_on_random_word(self, client):
+        response = client.get(reverse("random_word"))
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "Word Matching" in content
+
+        active_pattern = re.compile(
+            rf'class="site-nav-link is-active"[^>]*href="{re.escape(reverse("random_word"))}"'
+        )
+        assert active_pattern.search(content)
 
     def test_random_word_invalid_language(self, client):
         """Test view with non-existent language code."""
