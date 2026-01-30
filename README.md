@@ -40,13 +40,13 @@ Core vocabulary models shared across the application.
 
 A Django app that presents users with a random word to learn in their target language, helping build vocabulary through consistent practice.
 
-### matching (Word Matching Exercise)
+### exercises (Matching & Spelling)
 
-A Django app that presents a short matching exercise where users pair source words with translations. Users choose the source/target languages and the number of words to practice.
+A Django app that includes two exercises: Word Matching (pair source words with translations) and Spelling (type the translation for a given word). Users choose source/target languages for both exercises.
 
 ## Navigation
 
-The language-learning pages share a common navigation bar with links to Word of the Day and Word Matching, the current page is highlighted.
+The language-learning pages share a common navigation bar with links to Word of the Day, Word Matching, and Spelling, and the current page is highlighted.
 
 ## Quick Start with Docker
 

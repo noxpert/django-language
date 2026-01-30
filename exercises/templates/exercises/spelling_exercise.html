@@ -1,0 +1,298 @@
+{% extends 'wod/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Spelling Exercise" %}{% endblock %}
+
+{% block content %}
+<div class="spelling-page">
+    <header class="spelling-header">
+        <div class="spelling-title">
+            <span class="spelling-kicker">{% trans "Practice" %}</span>
+            <h1>{% trans "Spelling Exercise" %}</h1>
+            <p class="spelling-subtitle">
+                {% trans "Type the correct spelling for the translation shown." %}
+            </p>
+        </div>
+    </header>
+
+    <section class="spelling-controls">
+        <form method="get" action="{% url 'exercises:spelling' %}" class="spelling-form">
+            <div class="spelling-field">
+                <label for="source_language">{% trans "From language" %}</label>
+                <select name="source_language" id="source_language" required>
+                    <option value="">{% trans "Select a language" %}</option>
+                    {% for lang in languages %}
+                        <option value="{{ lang.code }}" {% if source_language == lang.code %}selected{% endif %}>
+                            {{ lang.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="spelling-field">
+                <label for="target_language">{% trans "To language" %}</label>
+                <select name="target_language" id="target_language" required>
+                    <option value="">{% trans "Select a language" %}</option>
+                    {% for lang in languages %}
+                        <option value="{{ lang.code }}" {% if target_language == lang.code %}selected{% endif %}>
+                            {{ lang.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="spelling-actions">
+                <button type="submit" class="action-primary">{% trans "Load word" %}</button>
+            </div>
+        </form>
+    </section>
+
+    {% if word and translation_word %}
+        <section class="spelling-exercise" data-word-id="{{ word.id }}" data-translation-id="{{ translation_word.id }}">
+            <div class="spelling-card spelling-prompt">
+                <div class="spelling-label">{% trans "Word" %}</div>
+                <div class="spelling-word">{{ word.word }}</div>
+                <div class="spelling-language">{{ word.language.name }}</div>
+            </div>
+            <div class="spelling-card spelling-response">
+                <label for="spelling-answer" class="spelling-label">
+                    {% blocktrans with language=translation_word.language.name %}Translate to {{ language }}{% endblocktrans %}
+                </label>
+                <input
+                    type="text"
+                    id="spelling-answer"
+                    name="spelling-answer"
+                    placeholder="{% trans "Type your answer" %}"
+                    autocomplete="off"
+                    spellcheck="false"
+                    autofocus
+                >
+                <div class="spelling-actions-inline">
+                    <button type="button" class="action-secondary" id="spelling-check">
+                        {% trans "Check spelling" %}
+                    </button>
+                </div>
+                <p class="spelling-reveal" id="spelling-reveal" aria-live="polite"></p>
+                <p class="spelling-hint">{% trans "Press Load word to try another." %}</p>
+            </div>
+        </section>
+        <section class="spelling-results" id="spelling-results">
+            <h2 class="spelling-results-title">{% trans "Recent checks" %}</h2>
+            <table class="spelling-table" aria-live="polite">
+                <thead>
+                    <tr>
+                        <th>{% trans "Word" %}</th>
+                        <th>{% trans "Your spelling" %}</th>
+                        <th>{% trans "Score" %}</th>
+                    </tr>
+                </thead>
+                <tbody id="spelling-results-body"></tbody>
+            </table>
+        </section>
+    {% else %}
+        <section class="spelling-empty">
+            {% if same_language %}
+                <p>{% trans "Please choose two different languages to start the exercise." %}</p>
+            {% elif source_language and target_language %}
+                <p>{% trans "No words are available for this pairing yet." %}</p>
+            {% else %}
+                <p>{% trans "Choose languages to start the exercise." %}</p>
+            {% endif %}
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const spellingForm = document.querySelector(".spelling-form");
+    const sourceSelect = document.getElementById("source_language");
+    const targetSelect = document.getElementById("target_language");
+    const answerInput = document.getElementById("spelling-answer");
+    const checkButton = document.getElementById("spelling-check");
+    const resultsBody = document.getElementById("spelling-results-body");
+    const exerciseSection = document.querySelector(".spelling-exercise");
+    const reveal = document.getElementById("spelling-reveal");
+
+    const results = [];
+    const getStorageKey = () => {
+        const source = sourceSelect?.value || "none";
+        const target = targetSelect?.value || "none";
+        return `spelling_results_${source}_${target}`;
+    };
+    const clamp = (value, minValue, maxValue) =>
+        Math.min(Math.max(value, minValue), maxValue);
+    const getCssNumber = (propertyName, fallback) => {
+        const value = getComputedStyle(document.documentElement)
+            .getPropertyValue(propertyName)
+            .trim();
+        const parsed = parseFloat(value);
+        return Number.isNaN(parsed) ? fallback : parsed;
+    };
+    const getScoreColor = (scoreValue) => {
+        const lowHue = getCssNumber("--score-low-hue", 0);
+        const highHue = getCssNumber("--score-high-hue", 120);
+        const saturation = getCssNumber("--score-saturation", 70);
+        const lightness = getCssNumber("--score-lightness", 92);
+        const roundedScore = Math.round(scoreValue / 5) * 5;
+        const score = clamp(roundedScore, 0, 100);
+        const ratio = score < 60 ? 0 : (score - 60) / 40;
+        const hue = lowHue + (highHue - lowHue) * ratio;
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    };
+
+    const loadResults = () => {
+        if (!resultsBody) {
+            return;
+        }
+        try {
+            const stored = JSON.parse(localStorage.getItem(getStorageKey()) || "[]");
+            if (Array.isArray(stored)) {
+                results.splice(0, results.length, ...stored.slice(0, 10));
+                renderResults();
+            }
+        } catch (error) {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    };
+
+    const saveResults = () => {
+        try {
+            localStorage.setItem(getStorageKey(), JSON.stringify(results.slice(0, 10)));
+        } catch (error) {
+            // Ignore storage errors.
+        }
+    };
+
+    if (sourceSelect && targetSelect && spellingForm) {
+        sourceSelect.addEventListener("change", () => {
+            sessionStorage.setItem("skip_page_anim", "1");
+            spellingForm.submit();
+        });
+        targetSelect.addEventListener("change", () => {
+            sessionStorage.setItem("skip_page_anim", "1");
+            spellingForm.submit();
+        });
+    }
+
+    const getCookie = (name) => {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i += 1) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === `${name}=`) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    };
+
+    const renderResults = () => {
+        if (!resultsBody) {
+            return;
+        }
+        resultsBody.innerHTML = "";
+        results.forEach((result) => {
+            const row = document.createElement("tr");
+
+            const wordCell = document.createElement("td");
+            wordCell.textContent = result.word;
+            row.appendChild(wordCell);
+
+            const answerCell = document.createElement("td");
+            answerCell.textContent = result.answer;
+            row.appendChild(answerCell);
+
+            const scoreCell = document.createElement("td");
+            scoreCell.textContent = `${result.score}%`;
+            row.appendChild(scoreCell);
+
+            row.style.backgroundColor = getScoreColor(result.score);
+            resultsBody.appendChild(row);
+        });
+    };
+
+    const checkSpelling = async () => {
+        if (!answerInput || !exerciseSection) {
+            return;
+        }
+
+        const wordId = exerciseSection.dataset.wordId;
+        const translationId = exerciseSection.dataset.translationId;
+        const answer = answerInput.value.trim();
+
+        if (!wordId || !translationId) {
+            return;
+        }
+
+        try {
+            if (reveal) {
+                reveal.textContent = "";
+            }
+            const response = await fetch("{% url 'exercises:spelling_check' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify({
+                    word_id: wordId,
+                    translation_id: translationId,
+                    answer,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Request failed");
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                results.unshift({
+                    word: data.word,
+                    answer: data.answer,
+                    score: data.score,
+                });
+                if (results.length > 10) {
+                    results.pop();
+                }
+                renderResults();
+                saveResults();
+                if (answerInput) {
+                    answerInput.value = "";
+                    answerInput.focus();
+                }
+                if (data.score === 100 && spellingForm) {
+                    saveResults();
+                    sessionStorage.setItem("skip_page_anim", "1");
+                    spellingForm.submit();
+                    return;
+                }
+                if (data.correct_spelling && reveal) {
+                    reveal.textContent = `{% trans "Correct spelling:" %} ${data.correct_spelling}`;
+                }
+            }
+        } catch (error) {
+            // Silently ignore for now.
+        }
+    };
+
+    if (checkButton) {
+        checkButton.addEventListener("click", checkSpelling);
+    }
+
+    if (answerInput) {
+        answerInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkSpelling();
+            }
+        });
+    }
+
+    loadResults();
+</script>
+{% endblock %}

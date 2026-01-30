@@ -27,7 +27,7 @@ class MatchingExerciseViewTests(TestCase):
             self.translation_map[source_word.id] = target_word
 
     def test_exercise_view_without_language(self):
-        response = self.client.get(reverse("matching:exercise"))
+        response = self.client.get(reverse("exercises:matching"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["source_language"], self.language.code)
         self.assertEqual(
@@ -38,7 +38,7 @@ class MatchingExerciseViewTests(TestCase):
 
     def test_exercise_view_with_language(self):
         response = self.client.get(
-            reverse("matching:exercise"),
+            reverse("exercises:matching"),
             {
                 "source_language": self.language.code,
                 "target_language": self.translation_language.code,
@@ -54,7 +54,7 @@ class MatchingExerciseViewTests(TestCase):
 
     def test_count_is_clamped(self):
         response = self.client.get(
-            reverse("matching:exercise"),
+            reverse("exercises:matching"),
             {
                 "source_language": self.language.code,
                 "target_language": self.translation_language.code,
@@ -64,7 +64,7 @@ class MatchingExerciseViewTests(TestCase):
         self.assertEqual(response.context["count"], 2)
 
         response = self.client.get(
-            reverse("matching:exercise"),
+            reverse("exercises:matching"),
             {
                 "source_language": self.language.code,
                 "target_language": self.translation_language.code,
@@ -90,7 +90,7 @@ class MatchingExerciseViewTests(TestCase):
         )
 
         response = self.client.get(
-            reverse("matching:exercise"),
+            reverse("exercises:matching"),
             {
                 "source_language": self.language.code,
                 "target_language": self.translation_language.code,
@@ -102,7 +102,7 @@ class MatchingExerciseViewTests(TestCase):
 
     def test_exercise_view_same_language_message(self):
         response = self.client.get(
-            reverse("matching:exercise"),
+            reverse("exercises:matching"),
             {
                 "source_language": self.language.code,
                 "target_language": self.language.code,
@@ -119,14 +119,14 @@ class MatchingExerciseViewTests(TestCase):
         )
 
     def test_navigation_active_on_matching(self):
-        response = self.client.get(reverse("matching:exercise"))
+        response = self.client.get(reverse("exercises:matching"))
 
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
         self.assertIn("Word Matching", content)
 
         active_pattern = re.compile(
-            rf'class="site-nav-link is-active"[^>]*href="{re.escape(reverse("matching:exercise"))}"'
+            rf'class="site-nav-link is-active"[^>]*href="{re.escape(reverse("exercises:matching"))}"'
         )
         self.assertRegex(content, active_pattern)
 
@@ -157,7 +157,7 @@ class MatchingCheckViewTests(TestCase):
             str(word.id): self.translation_map[word.id].id for word in self.words
         }
         response = self.client.post(
-            reverse("matching:check"),
+            reverse("exercises:matching_check"),
             data=json.dumps({"matches": matches}),
             content_type="application/json",
         )
@@ -174,7 +174,7 @@ class MatchingCheckViewTests(TestCase):
         )
         matches = {str(word.id): wrong_translation.id for word in self.words}
         response = self.client.post(
-            reverse("matching:check"),
+            reverse("exercises:matching_check"),
             data=json.dumps({"matches": matches}),
             content_type="application/json",
         )
@@ -186,7 +186,7 @@ class MatchingCheckViewTests(TestCase):
 
     def test_check_matches_empty(self):
         response = self.client.post(
-            reverse("matching:check"),
+            reverse("exercises:matching_check"),
             data=json.dumps({"matches": {}}),
             content_type="application/json",
         )
@@ -194,3 +194,45 @@ class MatchingCheckViewTests(TestCase):
         data = response.json()
         self.assertTrue(data["success"])
         self.assertEqual(data["total"], 0)
+
+    def test_check_matches_invalid_json(self):
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data="{not-json}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_check_matches_invalid_matches_payload(self):
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data=json.dumps({"matches": []}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_check_matches_unknown_word_id(self):
+        matches = {"9999": self.translation_map[self.words[0].id].id}
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data=json.dumps({"matches": matches}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_check_matches_unknown_translation_id(self):
+        matches = {str(self.words[0].id): 9999}
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data=json.dumps({"matches": matches}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])

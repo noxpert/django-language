@@ -1,5 +1,9 @@
 .PHONY: help up start down build rebuild logs shell test test-v test-cov lint format clean migrate makemigrations superuser collectstatic
 
+define RUN_IN_WEB
+	@sh -c 'if [ -n "$$(docker compose ps -q web 2>/dev/null)" ]; then docker compose exec web $(1); else docker compose run --rm web $(1); fi'
+endef
+
 # Default target - show help
 help:
 	@echo "Django Language Learning App - Makefile Commands"
@@ -69,23 +73,23 @@ collectstatic:
 
 # Testing and code quality
 test:
-	@docker compose exec web pytest 2>/dev/null || docker compose run --rm web pytest
+	$(call RUN_IN_WEB,pytest)
 
 test-v:
-	@docker compose exec web pytest -v 2>/dev/null || docker compose run --rm web pytest -v
+	$(call RUN_IN_WEB,pytest -v)
 
 test-cov:
-	@docker compose exec web pytest --cov-report=html 2>/dev/null || docker compose run --rm web pytest --cov-report=html
+	$(call RUN_IN_WEB,pytest --cov-report=html)
 	@echo "Coverage report generated in htmlcov/index.html"
 
 lint:
-	@docker compose exec web black --check . 2>/dev/null || docker compose run --rm web black --check .
-	@docker compose exec web isort --check-only . 2>/dev/null || docker compose run --rm web isort --check-only .
-	@docker compose exec web flake8 . 2>/dev/null || docker compose run --rm web flake8 .
+	$(call RUN_IN_WEB,black --check .)
+	$(call RUN_IN_WEB,isort --check-only .)
+	$(call RUN_IN_WEB,flake8 .)
 
 format:
-	@docker compose exec web black . 2>/dev/null || docker compose run --rm web black .
-	@docker compose exec web isort . 2>/dev/null || docker compose run --rm web isort .
+	$(call RUN_IN_WEB,black .)
+	$(call RUN_IN_WEB,isort .)
 
 # Cleanup
 clean:

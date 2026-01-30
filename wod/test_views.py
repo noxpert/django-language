@@ -54,6 +54,21 @@ class TestRandomWordView:
         # Should show message about selecting language or no words available
         assert "Choose languages" in content or "No words" in content
 
+    def test_random_word_same_language_message(self, client):
+        english = Language.objects.create(code="en", name="English")
+        Word.objects.create(language=english, word="book")
+
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "en", "target_language": "en"},
+        )
+
+        assert response.status_code == 200
+        assert response.context["same_language"] is True
+        assert response.context["word"] is None
+        content = response.content.decode()
+        assert "Please choose two different languages to start." in content
+
     def test_random_word_defaults_to_first_pair(self, client):
         english = Language.objects.create(code="en", name="English")
         hungarian = Language.objects.create(code="hu", name="Hungarian")
@@ -107,6 +122,28 @@ class TestRandomWordView:
         content = response.content.decode()
         assert "víz" in content
         assert "folyó" not in content
+
+    def test_random_word_avoids_repeat(self, client):
+        hungarian = Language.objects.create(code="hu", name="Hungarian")
+        english = Language.objects.create(code="en", name="English")
+        hu_word_one = Word.objects.create(language=hungarian, word="alma")
+        en_word_one = Word.objects.create(language=english, word="apple")
+        hu_word_two = Word.objects.create(language=hungarian, word="körte")
+        en_word_two = Word.objects.create(language=english, word="pear")
+        Translation.objects.create(source_word=hu_word_one, target_word=en_word_one)
+        Translation.objects.create(source_word=hu_word_two, target_word=en_word_two)
+
+        session = client.session
+        session["wod_last_word_id"] = hu_word_one.id
+        session.save()
+
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "hu", "target_language": "en"},
+        )
+
+        assert response.status_code == 200
+        assert response.context["word"].id != hu_word_one.id
 
     def test_language_selector_only_shows_languages_with_words(self, client):
         """Test that language selector only shows languages that have translations."""

@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "vocabulary",
     "wod",
-    "matching",
+    "exercises",
 ]
 
 MIDDLEWARE = [

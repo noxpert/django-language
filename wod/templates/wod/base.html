@@ -21,16 +21,34 @@
                 {% trans "Word of the Day" %}
             </a>
             <a
-                class="site-nav-link {% if current_view == 'matching:exercise' %}is-active{% endif %}"
-                href="{% url 'matching:exercise' %}"
+                class="site-nav-link {% if current_view == 'exercises:matching' %}is-active{% endif %}"
+                href="{% url 'exercises:matching' %}"
             >
                 {% trans "Word Matching" %}
+            </a>
+            <a
+                class="site-nav-link {% if current_view == 'exercises:spelling' %}is-active{% endif %}"
+                href="{% url 'exercises:spelling' %}"
+            >
+                {% trans "Spelling" %}
             </a>
         </div>
     </nav>
     {% endwith %}
     {% block content %}
     {% endblock %}
+    <script>
+        if (sessionStorage.getItem("skip_page_anim") === "1") {
+            document.body.classList.add("skip-page-animation");
+            sessionStorage.removeItem("skip_page_anim");
+        }
+
+        document.querySelectorAll("form").forEach((form) => {
+            form.addEventListener("submit", () => {
+                sessionStorage.setItem("skip_page_anim", "1");
+            });
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
