@@ -63,6 +63,28 @@ class TestSpellingExerciseView:
         content = response.content.decode()
         assert "No words are available for this pairing yet." in content
 
+    def test_spelling_exercise_avoids_repeat(self, client):
+        hungarian = Language.objects.create(code="hu", name="Hungarian")
+        english = Language.objects.create(code="en", name="English")
+        hu_word_one = Word.objects.create(language=hungarian, word="alma")
+        en_word_one = Word.objects.create(language=english, word="apple")
+        hu_word_two = Word.objects.create(language=hungarian, word="korte")
+        en_word_two = Word.objects.create(language=english, word="pear")
+        Translation.objects.create(source_word=hu_word_one, target_word=en_word_one)
+        Translation.objects.create(source_word=hu_word_two, target_word=en_word_two)
+
+        session = client.session
+        session["spelling_last_word_id"] = hu_word_one.id
+        session.save()
+
+        response = client.get(
+            reverse("exercises:spelling"),
+            {"source_language": "hu", "target_language": "en"},
+        )
+
+        assert response.status_code == 200
+        assert response.context["word"].id != hu_word_one.id
+
     def test_spelling_exercise_same_language_message(self, client):
         english = Language.objects.create(code="en", name="English")
         Word.objects.create(language=english, word="book")
@@ -140,3 +162,41 @@ class TestSpellingExerciseView:
         assert response.status_code == 400
         data = response.json()
         assert data["success"] is False
+
+    def test_check_spelling_reveals_answer_after_three_wrong(self, client):
+        english = Language.objects.create(code="en", name="English")
+        hungarian = Language.objects.create(code="hu", name="Hungarian")
+        en_word = Word.objects.create(language=english, word="apple")
+        hu_word = Word.objects.create(language=hungarian, word="alma")
+        Translation.objects.create(source_word=en_word, target_word=hu_word)
+
+        for _ in range(2):
+            response = client.post(
+                reverse("exercises:spelling_check"),
+                data=json.dumps(
+                    {
+                        "word_id": en_word.id,
+                        "translation_id": hu_word.id,
+                        "answer": "wrong",
+                    }
+                ),
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+            assert response.json()["correct_spelling"] is None
+
+        response = client.post(
+            reverse("exercises:spelling_check"),
+            data=json.dumps(
+                {
+                    "word_id": en_word.id,
+                    "translation_id": hu_word.id,
+                    "answer": "wrong",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["correct_spelling"] == "alma"

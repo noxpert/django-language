@@ -35,18 +35,32 @@ def random_word(request):
     if source_language and target_language and source_language == target_language:
         same_language = True
     elif source_language and target_language:
+        last_word_id = request.session.get("wod_last_word_id")
         words = (
             Word.objects.filter(language__code=source_language)
             .filter(
                 Q(translations_from__target_word__language__code=target_language)
                 | Q(translations_to__source_word__language__code=target_language)
             )
+            .exclude(id=last_word_id)
             .distinct()
             .order_by("?")[:1]
         )
 
+        if not words and last_word_id:
+            words = (
+                Word.objects.filter(language__code=source_language)
+                .filter(
+                    Q(translations_from__target_word__language__code=target_language)
+                    | Q(translations_to__source_word__language__code=target_language)
+                )
+                .distinct()
+                .order_by("?")[:1]
+            )
+
         if words:
             word = words[0]
+            request.session["wod_last_word_id"] = word.id
             target_translation = word.get_translation(target_language)
             if target_translation:
                 translation = target_translation.word

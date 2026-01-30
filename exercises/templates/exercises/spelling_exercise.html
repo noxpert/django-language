@@ -72,6 +72,7 @@
                         {% trans "Check spelling" %}
                     </button>
                 </div>
+                <p class="spelling-reveal" id="spelling-reveal" aria-live="polite"></p>
                 <p class="spelling-hint">{% trans "Press Load word to try another." %}</p>
             </div>
         </section>
@@ -111,6 +112,7 @@
     const checkButton = document.getElementById("spelling-check");
     const resultsBody = document.getElementById("spelling-results-body");
     const exerciseSection = document.querySelector(".spelling-exercise");
+    const reveal = document.getElementById("spelling-reveal");
 
     const results = [];
     const getStorageKey = () => {
@@ -227,6 +229,9 @@
         }
 
         try {
+            if (reveal) {
+                reveal.textContent = "";
+            }
             const response = await fetch("{% url 'exercises:spelling_check' %}", {
                 method: "POST",
                 headers: {
@@ -265,6 +270,9 @@
                     sessionStorage.setItem("skip_page_anim", "1");
                     spellingForm.submit();
                     return;
+                }
+                if (data.correct_spelling && reveal) {
+                    reveal.textContent = `{% trans "Correct spelling:" %} ${data.correct_spelling}`;
                 }
             }
         } catch (error) {

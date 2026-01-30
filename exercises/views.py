@@ -194,20 +194,34 @@ def spelling_exercise(request):
     if source_language and target_language and source_language == target_language:
         same_language = True
     elif source_language and target_language:
+        last_word_id = request.session.get("spelling_last_word_id")
         words = (
             Word.objects.filter(language__code=source_language)
             .filter(
                 Q(translations_from__target_word__language__code=target_language)
                 | Q(translations_to__source_word__language__code=target_language)
             )
+            .exclude(id=last_word_id)
             .distinct()
             .order_by("?")[:1]
         )
+        if not words and last_word_id:
+            words = (
+                Word.objects.filter(language__code=source_language)
+                .filter(
+                    Q(translations_from__target_word__language__code=target_language)
+                    | Q(translations_to__source_word__language__code=target_language)
+                )
+                .distinct()
+                .order_by("?")[:1]
+            )
         if words:
             word = words[0]
             translation_word = word.get_translation(target_language)
             if translation_word is None:
                 word = None
+            else:
+                request.session["spelling_last_word_id"] = word.id
 
     context = {
         "languages": languages,
@@ -270,6 +284,19 @@ def check_spelling(request):
         "wrong": _("Incorrect."),
     }[category]
 
+    attempts_key = f"spelling_attempts_{word_id}"
+    attempts = request.session.get(attempts_key, 0)
+    correct_spelling = None
+    if score == 100:
+        request.session.pop(attempts_key, None)
+    else:
+        attempts += 1
+        if attempts >= 3:
+            correct_spelling = translation_word.word
+            request.session.pop(attempts_key, None)
+        else:
+            request.session[attempts_key] = attempts
+
     return JsonResponse(
         {
             "success": True,
@@ -278,5 +305,6 @@ def check_spelling(request):
             "message": feedback,
             "word": word.word,
             "answer": answer,
+            "correct_spelling": correct_spelling,
         }
     )
