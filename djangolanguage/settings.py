@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "accounts",
     "vocabulary",
     "wod",
     "exercises",
@@ -146,6 +147,22 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN", "")
+AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID", "")
+AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET", "")
+AUTH0_CALLBACK_URL = os.getenv(
+    "AUTH0_CALLBACK_URL", "http://localhost:8000/auth/callback/"
+)
+AUTH0_LOGOUT_URL = os.getenv("AUTH0_LOGOUT_URL", "http://localhost:8000/")
+AUTH0_ADMIN_EMAILS = [
+    email.strip()
+    for email in os.getenv("AUTH0_ADMIN_EMAILS", "").split(",")
+    if email.strip()
+]
+
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

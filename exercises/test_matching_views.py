@@ -1,6 +1,7 @@
 import json
 import re
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -9,6 +10,8 @@ from vocabulary.models import Language, Translation, Word
 
 class MatchingExerciseViewTests(TestCase):
     def setUp(self):
+        user = get_user_model().objects.create_user(username="tester")
+        self.client.force_login(user)
         self.language = Language.objects.create(code="en", name="English")
         self.translation_language = Language.objects.create(code="hu", name="Hungarian")
         self.translation_map = {}
@@ -133,6 +136,8 @@ class MatchingExerciseViewTests(TestCase):
 
 class MatchingCheckViewTests(TestCase):
     def setUp(self):
+        user = get_user_model().objects.create_user(username="tester")
+        self.client.force_login(user)
         self.language = Language.objects.create(code="en", name="English")
         self.translation_language = Language.objects.create(code="hu", name="Hungarian")
         self.words = []

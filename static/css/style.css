@@ -83,6 +83,10 @@ body {
     box-shadow: 0 8px 16px rgba(11, 122, 117, 0.2);
 }
 
+.site-nav-logout {
+    margin-left: auto;
+}
+
 .wod-page {
     max-width: 1000px;
     margin: 40px auto 80px;

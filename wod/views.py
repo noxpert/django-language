@@ -1,9 +1,11 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render
 
 from vocabulary.models import Language, Word
 
 
+@login_required
 def random_word(request):
     languages = (
         Language.objects.filter(words__isnull=False)

@@ -32,6 +32,9 @@
             >
                 {% trans "Spelling" %}
             </a>
+            <a class="site-nav-link site-nav-logout" href="{% url 'accounts:logout' %}">
+                {% trans "Log out" %}
+            </a>
         </div>
     </nav>
     {% endwith %}
