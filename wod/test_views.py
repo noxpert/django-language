@@ -1,6 +1,7 @@
 import re
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from vocabulary.models import Language, Translation, Word
@@ -8,6 +9,11 @@ from vocabulary.models import Language, Translation, Word
 
 @pytest.mark.django_db
 class TestRandomWordView:
+    @pytest.fixture(autouse=True)
+    def _login(self, client, db):
+        user = get_user_model().objects.create_user(username="tester")
+        client.force_login(user)
+
     def test_random_word_view_with_words(self, client):
         hungarian = Language.objects.create(code="hu", name="Hungarian")
         english = Language.objects.create(code="en", name="English")
@@ -298,6 +304,11 @@ class TestRandomWordView:
 class TestTranslationIntegration:
     """Test how translations work in views."""
 
+    @pytest.fixture(autouse=True)
+    def _login(self, client, db):
+        user = get_user_model().objects.create_user(username="tester")
+        client.force_login(user)
+
     def test_word_with_multiple_translations(self, client):
         """Test word that has multiple translations."""
         hungarian = Language.objects.create(code="hu", name="Hungarian")
@@ -380,6 +391,11 @@ class TestTranslationIntegration:
 @pytest.mark.django_db
 class TestLanguageFiltering:
     """Test that languages are filtered correctly."""
+
+    @pytest.fixture(autouse=True)
+    def _login(self, client, db):
+        user = get_user_model().objects.create_user(username="tester")
+        client.force_login(user)
 
     def test_only_languages_with_words_in_selector(self, client):
         """Test that empty languages don"t appear in the selector."""

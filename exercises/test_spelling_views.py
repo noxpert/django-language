@@ -2,6 +2,7 @@ import json
 import re
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from vocabulary.models import Language, Translation, Word
@@ -9,6 +10,11 @@ from vocabulary.models import Language, Translation, Word
 
 @pytest.mark.django_db
 class TestSpellingExerciseView:
+    @pytest.fixture(autouse=True)
+    def _login(self, client, db):
+        user = get_user_model().objects.create_user(username="tester")
+        client.force_login(user)
+
     def test_spelling_exercise_loads_word(self, client):
         hungarian = Language.objects.create(code="hu", name="Hungarian")
         english = Language.objects.create(code="en", name="English")

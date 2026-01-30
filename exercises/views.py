@@ -1,6 +1,7 @@
 import json
 import random
 
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -13,6 +14,7 @@ from vocabulary.models import Language, Translation, Word
 from .utils import spelling_category, spelling_score
 
 
+@login_required
 @ensure_csrf_cookie
 def matching_exercise(request):
     languages = (
@@ -81,6 +83,7 @@ def matching_exercise(request):
     return render(request, "exercises/matching_exercise.html", context)
 
 
+@login_required
 @require_POST
 def check_matches(request):
     try:
@@ -163,6 +166,7 @@ def check_matches(request):
     )
 
 
+@login_required
 @ensure_csrf_cookie
 def spelling_exercise(request):
     languages = (
@@ -234,6 +238,7 @@ def spelling_exercise(request):
     return render(request, "exercises/spelling_exercise.html", context)
 
 
+@login_required
 @require_POST
 def check_spelling(request):
     try:
