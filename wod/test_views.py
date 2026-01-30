@@ -54,6 +54,21 @@ class TestRandomWordView:
         # Should show message about selecting language or no words available
         assert "Choose languages" in content or "No words" in content
 
+    def test_random_word_same_language_message(self, client):
+        english = Language.objects.create(code="en", name="English")
+        word = Word.objects.create(language=english, word="book")
+
+        response = client.get(
+            reverse("random_word"),
+            {"source_language": "en", "target_language": "en"},
+        )
+
+        assert response.status_code == 200
+        assert response.context["same_language"] is True
+        assert response.context["word"] is None
+        content = response.content.decode()
+        assert "Please choose two different languages to start." in content
+
     def test_random_word_defaults_to_first_pair(self, client):
         english = Language.objects.create(code="en", name="English")
         hungarian = Language.objects.create(code="hu", name="Hungarian")

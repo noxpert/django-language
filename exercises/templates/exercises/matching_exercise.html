@@ -18,7 +18,7 @@
     </header>
 
     <section class="match-controls">
-        <form method="get" action="{% url 'matching:exercise' %}" class="match-form">
+        <form method="get" action="{% url 'exercises:matching' %}" class="match-form">
             <div class="match-field">
                 <label for="source_language">{% trans "From language" %}</label>
                 <select name="source_language" id="source_language" required>
@@ -137,9 +137,18 @@
     const flipButton = document.getElementById("match-flip");
 
     if (sourceSelect && targetSelect && countSelect && matchForm) {
-        sourceSelect.addEventListener("change", () => matchForm.submit());
-        targetSelect.addEventListener("change", () => matchForm.submit());
-        countSelect.addEventListener("change", () => matchForm.submit());
+        sourceSelect.addEventListener("change", () => {
+            sessionStorage.setItem("skip_page_anim", "1");
+            matchForm.submit();
+        });
+        targetSelect.addEventListener("change", () => {
+            sessionStorage.setItem("skip_page_anim", "1");
+            matchForm.submit();
+        });
+        countSelect.addEventListener("change", () => {
+            sessionStorage.setItem("skip_page_anim", "1");
+            matchForm.submit();
+        });
     }
 
     if (flipButton && sourceSelect && targetSelect && matchForm) {
@@ -147,6 +156,7 @@
             const currentSource = sourceSelect.value;
             sourceSelect.value = targetSelect.value;
             targetSelect.value = currentSource;
+            sessionStorage.setItem("skip_page_anim", "1");
             matchForm.submit();
         });
     }
@@ -271,7 +281,7 @@
         });
 
         try {
-            const response = await fetch("{% url 'matching:check' %}", {
+            const response = await fetch("{% url 'exercises:matching_check' %}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

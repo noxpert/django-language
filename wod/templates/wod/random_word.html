@@ -72,7 +72,9 @@
         </section>
     {% else %}
         <section class="wod-empty">
-            {% if source_language and target_language %}
+            {% if same_language %}
+                <p>Please choose two different languages to start.</p>
+            {% elif source_language and target_language %}
                 <p>No words are available for this pairing yet.</p>
             {% else %}
                 <p>Choose languages to see a random word.</p>

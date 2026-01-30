@@ -20,6 +20,7 @@ def random_word(request):
     word = None
     translation = None
     translation_definition = None
+    same_language = False
 
     language_codes = list(languages.values_list("code", flat=True))
     if language_codes:
@@ -31,7 +32,9 @@ def random_word(request):
                 source_language,
             )
 
-    if source_language and target_language:
+    if source_language and target_language and source_language == target_language:
+        same_language = True
+    elif source_language and target_language:
         words = (
             Word.objects.filter(language__code=source_language)
             .filter(
@@ -61,5 +64,6 @@ def random_word(request):
             "languages": languages,
             "source_language": source_language,
             "target_language": target_language,
+            "same_language": same_language,
         },
     )

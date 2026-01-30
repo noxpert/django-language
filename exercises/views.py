@@ -4,9 +4,13 @@ import random
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils.translation import gettext as _
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
 from vocabulary.models import Language, Translation, Word
+
+from .utils import spelling_category, spelling_score
 
 
 def matching_exercise(request):
@@ -73,7 +77,7 @@ def matching_exercise(request):
         "translations": translations,
         "same_language": same_language,
     }
-    return render(request, "matching/matching_exercise.html", context)
+    return render(request, "exercises/matching_exercise.html", context)
 
 
 @require_POST
@@ -154,5 +158,124 @@ def check_matches(request):
             "results": results,
             "score": score,
             "total": len(results),
+        }
+    )
+
+
+@ensure_csrf_cookie
+def spelling_exercise(request):
+    languages = (
+        Language.objects.filter(words__isnull=False)
+        .filter(
+            Q(words__translations_from__isnull=False)
+            | Q(words__translations_to__isnull=False)
+        )
+        .distinct()
+        .order_by("name")
+    )
+
+    source_language = request.GET.get("source_language")
+    target_language = request.GET.get("target_language")
+
+    language_codes = list(languages.values_list("code", flat=True))
+    if language_codes:
+        if not source_language:
+            source_language = language_codes[0]
+        if not target_language:
+            target_language = next(
+                (code for code in language_codes if code != source_language),
+                source_language,
+            )
+
+    word = None
+    translation_word = None
+    same_language = False
+    if source_language and target_language and source_language == target_language:
+        same_language = True
+    elif source_language and target_language:
+        words = (
+            Word.objects.filter(language__code=source_language)
+            .filter(
+                Q(translations_from__target_word__language__code=target_language)
+                | Q(translations_to__source_word__language__code=target_language)
+            )
+            .distinct()
+            .order_by("?")[:1]
+        )
+        if words:
+            word = words[0]
+            translation_word = word.get_translation(target_language)
+            if translation_word is None:
+                word = None
+
+    context = {
+        "languages": languages,
+        "source_language": source_language,
+        "target_language": target_language,
+        "word": word,
+        "translation_word": translation_word,
+        "same_language": same_language,
+    }
+    return render(request, "exercises/spelling_exercise.html", context)
+
+
+@require_POST
+def check_spelling(request):
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid payload."}, status=400)
+
+    word_id = payload.get("word_id")
+    translation_id = payload.get("translation_id")
+    answer = payload.get("answer", "")
+
+    try:
+        word_id = int(word_id)
+        translation_id = int(translation_id)
+    except (TypeError, ValueError):
+        return JsonResponse({"success": False, "error": "Invalid word id."}, status=400)
+
+    try:
+        word = Word.objects.get(id=word_id)
+    except Word.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Unknown word id."}, status=400)
+
+    try:
+        translation_word = Word.objects.get(id=translation_id)
+    except Word.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Unknown translation id."}, status=400
+        )
+
+    is_valid = Translation.objects.filter(
+        Q(source_word=word, target_word=translation_word)
+        | Q(source_word=translation_word, target_word=word)
+    ).exists()
+    if not is_valid:
+        return JsonResponse(
+            {"success": False, "error": "Translation mismatch."}, status=400
+        )
+
+    use_vowel_pairs = translation_word.language.code == "hu"
+    score = spelling_score(
+        translation_word.word, answer, use_vowel_pairs=use_vowel_pairs
+    )
+    category = spelling_category(score)
+    feedback = {
+        "perfect": _("Correct!"),
+        "almost": _("Almost!"),
+        "partial": _("Keep trying!"),
+        "wrong": _("Incorrect."),
+    }[category]
+
+    return JsonResponse(
+        {
+            "success": True,
+            "score": score,
+            "category": category,
+            "message": feedback,
+            "word": word.word,
+            "answer": answer,
         }
     )
