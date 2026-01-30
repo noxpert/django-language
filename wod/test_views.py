@@ -56,7 +56,7 @@ class TestRandomWordView:
 
     def test_random_word_same_language_message(self, client):
         english = Language.objects.create(code="en", name="English")
-        word = Word.objects.create(language=english, word="book")
+        Word.objects.create(language=english, word="book")
 
         response = client.get(
             reverse("random_word"),

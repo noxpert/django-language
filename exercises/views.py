@@ -13,6 +13,7 @@ from vocabulary.models import Language, Translation, Word
 from .utils import spelling_category, spelling_score
 
 
+@ensure_csrf_cookie
 def matching_exercise(request):
     languages = (
         Language.objects.filter(words__isnull=False)

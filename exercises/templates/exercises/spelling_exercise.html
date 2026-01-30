@@ -113,7 +113,11 @@
     const exerciseSection = document.querySelector(".spelling-exercise");
 
     const results = [];
-    const STORAGE_KEY = "spelling_results";
+    const getStorageKey = () => {
+        const source = sourceSelect?.value || "none";
+        const target = targetSelect?.value || "none";
+        return `spelling_results_${source}_${target}`;
+    };
     const clamp = (value, minValue, maxValue) =>
         Math.min(Math.max(value, minValue), maxValue);
     const getCssNumber = (propertyName, fallback) => {
@@ -140,7 +144,7 @@
             return;
         }
         try {
-            const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+            const stored = JSON.parse(localStorage.getItem(getStorageKey()) || "[]");
             if (Array.isArray(stored)) {
                 results.splice(0, results.length, ...stored.slice(0, 10));
                 renderResults();
@@ -152,7 +156,7 @@
 
     const saveResults = () => {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(results.slice(0, 10)));
+            localStorage.setItem(getStorageKey(), JSON.stringify(results.slice(0, 10)));
         } catch (error) {
             // Ignore storage errors.
         }

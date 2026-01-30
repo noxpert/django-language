@@ -65,7 +65,7 @@ class TestSpellingExerciseView:
 
     def test_spelling_exercise_same_language_message(self, client):
         english = Language.objects.create(code="en", name="English")
-        word = Word.objects.create(language=english, word="book")
+        Word.objects.create(language=english, word="book")
 
         response = client.get(
             reverse("exercises:spelling"),
@@ -115,3 +115,28 @@ class TestSpellingExerciseView:
         assert data["success"] is True
         assert data["score"] == 95
         assert "Almost" in data["message"]
+
+    def test_check_spelling_translation_mismatch(self, client):
+        english = Language.objects.create(code="en", name="English")
+        hungarian = Language.objects.create(code="hu", name="Hungarian")
+        german = Language.objects.create(code="de", name="German")
+        en_word = Word.objects.create(language=english, word="apple")
+        hu_word = Word.objects.create(language=hungarian, word="alma")
+        de_word = Word.objects.create(language=german, word="apfel")
+        Translation.objects.create(source_word=en_word, target_word=de_word)
+
+        response = client.post(
+            reverse("exercises:spelling_check"),
+            data=json.dumps(
+                {
+                    "word_id": en_word.id,
+                    "translation_id": hu_word.id,
+                    "answer": "alma",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert data["success"] is False

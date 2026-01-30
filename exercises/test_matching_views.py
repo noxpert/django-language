@@ -194,3 +194,45 @@ class MatchingCheckViewTests(TestCase):
         data = response.json()
         self.assertTrue(data["success"])
         self.assertEqual(data["total"], 0)
+
+    def test_check_matches_invalid_json(self):
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data="{not-json}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_check_matches_invalid_matches_payload(self):
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data=json.dumps({"matches": []}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_check_matches_unknown_word_id(self):
+        matches = {"9999": self.translation_map[self.words[0].id].id}
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data=json.dumps({"matches": matches}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_check_matches_unknown_translation_id(self):
+        matches = {str(self.words[0].id): 9999}
+        response = self.client.post(
+            reverse("exercises:matching_check"),
+            data=json.dumps({"matches": matches}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
