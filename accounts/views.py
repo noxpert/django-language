@@ -1,6 +1,7 @@
 from authlib.integrations.django_client import OAuth
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
+from django.http import HttpResponseServerError
 from django.shortcuts import redirect
 
 oauth = OAuth()
@@ -15,10 +16,32 @@ auth0 = oauth.register(
 
 
 def login_view(request):
+    missing = []
+    if not settings.AUTH0_DOMAIN:
+        missing.append("AUTH0_DOMAIN")
+    if not settings.AUTH0_CLIENT_ID:
+        missing.append("AUTH0_CLIENT_ID")
+    if not settings.AUTH0_CLIENT_SECRET:
+        missing.append("AUTH0_CLIENT_SECRET")
+    if missing:
+        return HttpResponseServerError(
+            f"Missing Auth0 configuration: {', '.join(missing)}"
+        )
     return auth0.authorize_redirect(request, settings.AUTH0_CALLBACK_URL)
 
 
 def callback(request):
+    missing = []
+    if not settings.AUTH0_DOMAIN:
+        missing.append("AUTH0_DOMAIN")
+    if not settings.AUTH0_CLIENT_ID:
+        missing.append("AUTH0_CLIENT_ID")
+    if not settings.AUTH0_CLIENT_SECRET:
+        missing.append("AUTH0_CLIENT_SECRET")
+    if missing:
+        return HttpResponseServerError(
+            f"Missing Auth0 configuration: {', '.join(missing)}"
+        )
     token = auth0.authorize_access_token(request)
     userinfo = token.get("userinfo") or auth0.userinfo(token=token)
 
