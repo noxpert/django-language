@@ -1,4 +1,4 @@
-.PHONY: help up start down build rebuild logs shell test test-v test-cov lint format clean migrate makemigrations superuser collectstatic
+.PHONY: help up start down build rebuild logs shell test test-v test-cov test-ui test-all lint format clean migrate makemigrations superuser collectstatic
 
 define RUN_IN_WEB
 	@sh -c 'if [ -n "$$(docker compose ps -q web 2>/dev/null)" ]; then docker compose exec web $(1); else docker compose run --rm web $(1); fi'
@@ -24,7 +24,9 @@ help:
 	@echo "  make collectstatic   - Collect static files"
 	@echo ""
 	@echo "Testing & Quality:"
-	@echo "  make test            - Run all tests"
+	@echo "  make test            - Run unit tests (excludes playwright)"
+	@echo "  make test-ui         - Run only playwright UI tests"
+	@echo "  make test-all        - Run all tests including playwright"
 	@echo "  make test-v          - Run tests with verbose output"
 	@echo "  make test-cov        - Run tests with HTML coverage report"
 	@echo "  make lint            - Run flake8 linter"
@@ -74,6 +76,12 @@ collectstatic:
 # Testing and code quality
 test:
 	$(call RUN_IN_WEB,pytest)
+
+test-ui:
+	poetry run pytest -m playwright --no-cov
+
+test-all:
+	poetry run pytest -m "" --no-cov
 
 test-v:
 	$(call RUN_IN_WEB,pytest -v)

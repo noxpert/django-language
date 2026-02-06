@@ -87,6 +87,23 @@ body {
     margin-left: auto;
 }
 
+.site-nav-user-section {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.site-nav-user-section .site-nav-logout {
+    margin-left: 0;
+}
+
+.site-nav-user {
+    color: var(--ink-muted);
+    font-weight: 500;
+    font-size: 0.9em;
+}
+
 .wod-page {
     max-width: 1000px;
     margin: 40px auto 80px;
