@@ -17,6 +17,20 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     curl \
     build-essential \
+    libnss3 \
+    libnspr4 \
+    libdbus-1-3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
@@ -29,6 +43,9 @@ COPY pyproject.toml poetry.lock ./
 # Install dependencies (including dev dependencies for development)
 RUN poetry install --no-root && \
     rm -rf $POETRY_CACHE_DIR
+
+# Install Playwright browsers
+RUN poetry run playwright install chromium
 
 # Copy project files
 COPY . .

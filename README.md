@@ -94,9 +94,11 @@ The project includes a Makefile to simplify common development tasks. Run `make 
 
 ### Testing & Quality
 
-* `make test` - Run all tests
-* `make test-v` - Run tests with verbose output
+* `make test` - Run all tests (excludes UI tests)
+* `make test-v` - Run tests with verbose output (excludes UI tests)
 * `make test-cov` - Run tests with HTML coverage report (see `htmlcov/index.html`)
+* `make test-ui` - Run only UI tests (Playwright)
+* `make test-all` - Run all tests including UI tests
 * `make lint` - Run flake8 linter
 * `make format` - Format code with black and isort
 
@@ -241,11 +243,79 @@ If you prefer not to use the Makefile, you can run commands directly:
 
 ### Testing
 
-* `poetry run pytest` - Run all tests with coverage report
+* `poetry run pytest` - Run all tests (excludes UI tests)
+* `poetry run pytest -m ui` - Run only UI tests
 * `poetry run pytest wod/` - Run tests for specific app
 * `poetry run pytest -v` - Run tests with verbose output
 * `poetry run pytest --lf` - Run only last failed tests
 * `poetry run pytest --cov-report=html` - Generate HTML coverage report
+
+## Testing
+
+This project includes comprehensive test coverage with both unit tests and UI tests.
+
+### Test Types
+
+**Unit Tests**
+- Located in each app directory as `test_*.py` files
+- Use pytest with Django integration
+- Cover models, views, forms, and utilities
+- Run quickly for fast iteration
+
+**UI Tests**
+- Use Playwright for browser automation
+- Test user interactions and page rendering
+- Marked with `@pytest.mark.ui` decorator
+- Files: `test_ui*.py` in app directories
+- Cover:
+  - Word of the Day page (`wod/test_ui.py`)
+  - Matching exercise (`exercises/test_ui_matching.py`)
+  - Spelling exercise (`exercises/test_ui_spelling.py`)
+
+### Running Tests
+
+**With Makefile (Recommended):**
+```bash
+make test         # Run unit tests only (fast)
+make test-ui      # Run UI tests with browser
+make test-all     # Run all tests
+make test-cov     # Generate coverage report
+```
+
+**With Docker directly:**
+```bash
+docker compose exec web pytest -m "not ui"  # Unit tests only
+docker compose exec web pytest -m ui        # UI tests only
+docker compose exec web pytest              # All tests
+```
+
+**With Poetry (local):**
+```bash
+poetry run pytest -m "not ui"  # Unit tests only
+poetry run pytest -m ui        # UI tests only
+poetry run pytest              # All tests
+```
+
+### Playwright Setup
+
+UI tests require Playwright browsers to be installed. In Docker, this happens automatically. For local development:
+
+```bash
+poetry run playwright install chromium
+```
+
+### Test Markers
+
+Tests use pytest markers for organization:
+- `@pytest.mark.ui` - Marks UI/browser tests
+- `@pytest.mark.django_db` - Marks tests requiring database
+
+### CI/CD
+
+GitHub Actions runs all tests on every push and pull request:
+1. Unit tests run first (fast feedback)
+2. UI tests run after (comprehensive coverage)
+3. Both must pass for builds to succeed
 
 ## Docker Setup Details
 

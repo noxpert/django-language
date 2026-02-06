@@ -22,6 +22,12 @@ pytest = "^9.0.2"
 pytest-django = "^4.11.1"
 factory-boy = "^3.3.3"
 pytest-cov = "^7.0.0"
+pytest-playwright = "^0.7.2"
+playwright = "^1.58.0"
+
+[tool.poetry.virtualenvs]
+create = false
+in-project = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

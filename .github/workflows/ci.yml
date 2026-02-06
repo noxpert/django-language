@@ -34,8 +34,12 @@ jobs:
         env:
           POETRY_VIRTUALENVS_CREATE: "false"
         run: poetry install --no-interaction --with dev
+      - name: Install Playwright browsers
+        run: poetry run playwright install --with-deps chromium
       - name: Run tests
-        run: poetry run pytest
+        run: poetry run pytest -m "not ui"
+      - name: Run UI tests
+        run: poetry run pytest -m ui
 
   build:
     runs-on: ubuntu-latest

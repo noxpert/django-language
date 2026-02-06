@@ -1,7 +1,7 @@
-.PHONY: help up start down build rebuild logs shell test test-v test-cov lint format clean migrate makemigrations superuser collectstatic
+.PHONY: help up start down build rebuild logs shell test test-v test-cov test-ui test-all lint format clean migrate makemigrations superuser collectstatic deps
 
 define RUN_IN_WEB
-	@sh -c 'if [ -n "$$(docker compose ps -q web 2>/dev/null)" ]; then docker compose exec web $(1); else docker compose run --rm web $(1); fi'
+    @sh -c 'if [ -n "$$(docker compose ps -q web 2>/dev/null)" ]; then docker compose exec web $(1); else docker compose run --rm web $(1); fi'
 endef
 
 # Default target - show help
@@ -16,6 +16,9 @@ help:
 	@echo "  make rebuild         - Rebuild containers from scratch"
 	@echo "  make logs            - View application logs (follow mode)"
 	@echo ""
+	@echo "Dependencies:"
+	@echo "  make deps            - Install dependencies and update lock file"
+	@echo ""
 	@echo "Django Management:"
 	@echo "  make shell           - Open Django shell"
 	@echo "  make migrate         - Run database migrations"
@@ -24,9 +27,11 @@ help:
 	@echo "  make collectstatic   - Collect static files"
 	@echo ""
 	@echo "Testing & Quality:"
-	@echo "  make test            - Run all tests"
-	@echo "  make test-v          - Run tests with verbose output"
-	@echo "  make test-cov        - Run tests with HTML coverage report"
+	@echo "  make test            - Run all tests (excludes UI tests)"
+	@echo "  make test-v          - Run tests with verbose output (excludes UI tests)"
+	@echo "  make test-cov        - Run tests with HTML coverage report (excludes UI tests)"
+	@echo "  make test-ui         - Run only UI tests (Playwright)"
+	@echo "  make test-all        - Run all tests including UI tests"
 	@echo "  make lint            - Run flake8 linter"
 	@echo "  make format          - Format code with black and isort"
 	@echo ""
@@ -55,6 +60,12 @@ rebuild:
 logs:
 	docker compose logs -f
 
+# Dependency management
+deps:
+	$(call RUN_IN_WEB,poetry install)
+	$(call RUN_IN_WEB,poetry update)
+	@echo "Dependencies installed and lock file updated."
+
 # Django management commands
 shell:
 	@docker compose exec web python manage.py shell 2>/dev/null || docker compose run --rm web python manage.py shell
@@ -73,14 +84,20 @@ collectstatic:
 
 # Testing and code quality
 test:
-	$(call RUN_IN_WEB,pytest)
+	$(call RUN_IN_WEB,pytest -m "not ui")
 
 test-v:
-	$(call RUN_IN_WEB,pytest -v)
+	$(call RUN_IN_WEB,pytest -v -m "not ui")
 
 test-cov:
-	$(call RUN_IN_WEB,pytest --cov-report=html)
+	$(call RUN_IN_WEB,pytest --cov-report=html -m "not ui")
 	@echo "Coverage report generated in htmlcov/index.html"
+
+test-ui:
+	$(call RUN_IN_WEB,pytest -m ui --headed)
+
+test-all:
+	$(call RUN_IN_WEB,pytest)
 
 lint:
 	$(call RUN_IN_WEB,black --check .)
